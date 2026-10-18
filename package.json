@@ -1,0 +1,23 @@
+{
+  "name": "agentdesk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AgentDesk 智协台 —— 面向团队的 AI 协同办公台（会议纪要 / AI 写作 / 知识问答 / 任务看板）",
+  "license": "MIT",
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "dev": "pnpm -C apps/web dev",
+    "build": "pnpm -C apps/web build",
+    "preview": "pnpm -C apps/web preview",
+    "lint": "pnpm -C apps/web lint",
+    "typecheck": "pnpm -C apps/web typecheck",
+    "test": "pnpm -C apps/web test",
+    "e2e": "pnpm -C apps/web e2e",
+    "api": ".venv/Scripts/python -m uvicorn app.main:app --app-dir apps/api --reload --port 8787",
+    "seed": ".venv/Scripts/python -m app.seed.demo --reset",
+    "types": ".venv/Scripts/python scripts/gen_types.py"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
