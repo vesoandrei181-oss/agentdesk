@@ -1,0 +1,61 @@
+[
+  {
+    "model": "deepseek-flash",
+    "thinking": "off",
+    "elapsed_s": 3.9,
+    "tokens_in": 558,
+    "tokens_out": 552,
+    "reasoning_tokens": 0,
+    "items": 7,
+    "kept": 7,
+    "grounded_rate": 1.0,
+    "kinds": [
+      "decision",
+      "open_question",
+      "risk"
+    ]
+  },
+  {
+    "model": "deepseek-flash",
+    "thinking": "on",
+    "elapsed_s": 7.7,
+    "tokens_in": 583,
+    "tokens_out": 1517,
+    "reasoning_tokens": 1037,
+    "items": 7,
+    "kept": 7,
+    "grounded_rate": 1.0,
+    "kinds": [
+      "decision",
+      "open_question",
+      "risk"
+    ]
+  },
+  {
+    "model": "deepseek-v4-pro",
+    "thinking": "off",
+    "elapsed_s": 6.4,
+    "tokens_in": 555,
+    "tokens_out": 558,
+    "reasoning_tokens": 0,
+    "items": 6,
+    "kept": 6,
+    "grounded_rate": 1.0,
+    "kinds": [
+      "decision",
+      "risk"
+    ]
+  },
+  {
+    "model": "deepseek-v4-pro",
+    "thinking": "on",
+    "elapsed_s": 49.5,
+    "tokens_in": 634,
+    "tokens_out": 4000,
+    "reasoning_tokens": 4000,
+    "items": 0,
+    "kept": 0,
+    "grounded_rate": 1.0,
+    "kinds": []
+  }
+]

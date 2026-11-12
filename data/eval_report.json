@@ -1,0 +1,160 @@
+{
+  "generated_at": "2026-11-16 21:14:38",
+  "kb": {
+    "questions": 12,
+    "hit_rate": 1.0,
+    "citation_support": 0.722,
+    "avg_latency_s": 7.16,
+    "total_s": 130.7,
+    "rows": [
+      {
+        "question": "知识库问答的引用校验阈值是多少？",
+        "expect": "product",
+        "hit": true,
+        "citations": 2,
+        "strong": 2,
+        "latency": 5.88,
+        "answer": "**结论：资料中没有给出「知识库问答」引用校验的具体阈值，因此该项为「资料中未提及」。**已知的唯一阈值属于会议纪要的证据链机制，它与知识库问答是两套不同的能力。\n\n**依据：**\n- 产品模块介绍里确实提到知识库问答采用“混合检索加引用校"
+      },
+      {
+        "question": "切片长度和重叠是怎么设的？",
+        "expect": "product",
+        "hit": true,
+        "citations": 5,
+        "strong": 5,
+        "latency": 15.05,
+        "answer": "**结论：资料中未提及切片长度和重叠的具体设置。** 现有资料没有给出切分长度、重叠大小的数值，也没有说明它们是否可配置。\n\n**依据：** [1] 只提到上传接口会返回切片数量，并提供查看切片的接口，便于核对召回质量，但未涉及切分参数本身"
+      },
+      {
+        "question": "会议纪要的六个 Agent 分别做什么？",
+        "expect": "product",
+        "hit": true,
+        "citations": 4,
+        "strong": 4,
+        "latency": 7.85,
+        "answer": "**结论：资料中没有逐一列出会议纪要六个 Agent 的各自职责，只提到存在「六步流水线」，以及部分 Agent 角色的模型分配和产出要求。**\n\n依据如下：\n\n- 调用分析接口会触发六步流水线，但资料只说明返回 processing 状态"
+      },
+      {
+        "question": "语义缓存相似度阈值是多少？",
+        "expect": "product",
+        "hit": true,
+        "citations": 3,
+        "strong": 1,
+        "latency": 6.84,
+        "answer": "**结论：资料中未提及语义缓存的相似度阈值。**\n\n依据：资料[2][3]只说明了语义缓存异常时的处置方式：可以清空 `data/cache/semantic.jsonl` 后重启，或调用 `POST /api/settings/cache"
+      },
+      {
+        "question": "接口鉴权用什么方式？",
+        "expect": "api",
+        "hit": true,
+        "citations": 1,
+        "strong": 1,
+        "latency": 5.23,
+        "answer": "结论：接口鉴权采用 Bearer 令牌方式[1]。\n\n依据：根据《AgentDesk · api》认证说明，登录接口会返回 token，该令牌有效期为 7 天；调用接口时需在请求头中携带 `Authorization: Bearer <to"
+      },
+      {
+        "question": "分析接口是同步还是异步？",
+        "expect": "api",
+        "hit": true,
+        "citations": 2,
+        "strong": 2,
+        "latency": 6.5,
+        "answer": "分析接口是异步的。调用 `POST /api/meetings/{id}/analyze` 后只触发六步流水线并返回 `processing`，实际分析不在该请求内完成，前端需通过 `GET /api/meetings/{id}` 轮询 `"
+      },
+      {
+        "question": "SSE 流式问答的返回格式是什么？",
+        "expect": "api",
+        "hit": true,
+        "citations": 3,
+        "strong": 2,
+        "latency": 4.83,
+        "answer": "结论：问答接口通过 SSE（Server-Sent Events）流式返回，事件按 retrieval、token、done 三类依次推送 [1]。但各事件携带的具体字段结构，资料中未提及。\n\n依据方面，接口文档明确 `POST /api/"
+      },
+      {
+        "question": "上传知识库支持哪些格式？",
+        "expect": "api",
+        "hit": true,
+        "citations": 2,
+        "strong": 2,
+        "latency": 4.88,
+        "answer": "**结论：知识库上传目前支持 PDF、DOCX、MD、TXT 四种格式。**\n\n**依据：**\n- 上传接口为 `POST /api/kb/upload`，接受的文档格式即上述四类，接口会返回切片数量 [1]。\n- 上传后可调用 `GET "
+      },
+      {
+        "question": "部署时后端最少要多少内存？",
+        "expect": "ops",
+        "hit": true,
+        "citations": 5,
+        "strong": 4,
+        "latency": 5.37,
+        "answer": "结论：资料中未提及后端部署所需的最低内存数值，无法给出具体数字。\n\n依据：现有资料只说明了后端启动方式为单进程 uvicorn 服务 [1]；50 并发下问答接口 P95 约 2.4 秒，瓶颈在上游模型 [2]；SQLite 适合单机演示，"
+      },
+      {
+        "question": "50 并发下 P95 延迟是多少？",
+        "expect": "ops",
+        "hit": true,
+        "citations": 1,
+        "strong": 1,
+        "latency": 5.02,
+        "answer": "结论：50 并发下问答接口 P95 延迟约 2.4 秒，主要瓶颈在上游模型 [1]。\n\n依据：压测资料给出了这一并发档位的延迟数值，并说明长耗时的会议分析任务不占用请求连接，而是转到后台线程处理、由前端轮询获取结果 [1]。因此，该 P95"
+      },
+      {
+        "question": "上线前要做哪些检查？",
+        "expect": "ops",
+        "hit": true,
+        "citations": 5,
+        "strong": 2,
+        "latency": 13.07,
+        "answer": "**结论：** 上线前需重点核对环境变量、数据库选型、脱敏开关、前端构建和故障降级这五项；其余常规检查，资料中未提及。\n\n**依据：**\n1. **环境变量**：确认 `LLM_PROVIDER`、`LLM_BASE_URL`、`LLM_M"
+      },
+      {
+        "question": "模型路由有哪几档？",
+        "expect": "product",
+        "hit": true,
+        "citations": 3,
+        "strong": 0,
+        "latency": 5.36,
+        "answer": "模型路由共有四档：quality（质量优先）、balanced（均衡）、cheap（省钱）、local（隐私/本地）。[1][2]\n\n依据是：接口切换档位时，`tier` 参数可取这四个值。[1] 在路由策略上，质量优先档由大模型承担；省钱"
+      }
+    ]
+  },
+  "writer": {
+    "runs": 4,
+    "rows": [
+      {
+        "instruction": "把语言改得更口语、更像人写的",
+        "patches": 6,
+        "located": 6,
+        "latency": 7.04,
+        "added": 6,
+        "removed": 6
+      },
+      {
+        "instruction": "压缩到 300 字以内，保留所有数字",
+        "patches": 6,
+        "located": 6,
+        "latency": 13.58,
+        "added": 6,
+        "removed": 6
+      },
+      {
+        "instruction": "给每一段补一句结论句",
+        "patches": 6,
+        "located": 6,
+        "latency": 7.06,
+        "added": 6,
+        "removed": 6
+      },
+      {
+        "instruction": "把待办拆成「谁 / 做什么 / 什么时候」三段式",
+        "patches": 5,
+        "located": 5,
+        "latency": 17.17,
+        "added": 5,
+        "removed": 5
+      }
+    ],
+    "patch_locate_rate": 1.0,
+    "avg_latency_s": 11.21
+  },
+  "doc_chars": 301
+}

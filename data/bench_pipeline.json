@@ -1,0 +1,173 @@
+{
+  "elapsed": 39.081180572509766,
+  "meeting_id": 5,
+  "trace": {
+    "run": {
+      "id": 40,
+      "status": "done",
+      "tokens_in": 3539,
+      "tokens_out": 4104,
+      "cost_usd": 0.00547,
+      "latency_ms": 39057,
+      "cache_hits": 0,
+      "model": "deepseek-flash",
+      "meta": {
+        "metrics": {
+          "decision_evidence_total": 10,
+          "decision_evidence_valid": 10,
+          "decision_grounded_rate": 1.0,
+          "decision_dropped": 0,
+          "action_evidence_total": 5,
+          "action_evidence_valid": 5,
+          "action_grounded_rate": 1.0,
+          "action_dropped": 0,
+          "critic_score": 0.72,
+          "critic_dropped": 1,
+          "critic_action_downgraded": 1,
+          "pii_masked": 0
+        },
+        "warnings": []
+      }
+    },
+    "steps": [
+      {
+        "idx": 0,
+        "agent": "scribe",
+        "status": "ok",
+        "input": "12 段转写 / 488 字",
+        "output": "识别说话人 3 位，删除少量语气词与重复，保留原说话人归属和语义；未改动技术术语与数字。",
+        "tokens_in": 558,
+        "tokens_out": 53,
+        "latency_ms": 2780,
+        "cache_hit": false,
+        "evidence_count": 0,
+        "payload": {
+          "note": "删除少量语气词与重复，保留原说话人归属和语义；未改动技术术语与数字。"
+        }
+      },
+      {
+        "idx": 1,
+        "agent": "segmenter",
+        "status": "ok",
+        "input": "12 段",
+        "output": "切分 4 个议题：检索与切片优化、前端引用面板、合规脱敏、上线决议",
+        "tokens_in": 519,
+        "tokens_out": 195,
+        "latency_ms": 2580,
+        "cache_hit": false,
+        "evidence_count": 0,
+        "payload": {
+          "topics": [
+            {
+              "title": "检索与切片优化",
+              "segments": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "summary": "确认切片调整为520字重叠80字，命中率目标定为88%，未达标不上线。",
+              "start_ms": 24000,
+              "end_ms": 96000
+            },
+            {
+              "title": "前端引用面板",
+              "segments": [
+                1,
+                8
+              ],
+              "summary": "流式输出已通、首字延迟1.1秒，引用面板周五前交付可点跳转与支撑强度显示。",
+              "start_ms": 12000,
+              "end_ms": 108000
+            },
+            {
+              "title": "合规脱敏",
+              "segments": [
+                9,
+                10
+              ],
+              "summary": "确定身份证、手机号一律打码，由脱敏网关处理且日志只留掩码内容。",
+              "start_ms": 108000,
+              "end_ms": 132000
+            },
+            {
+              "title": "上线决议",
+              "segments": [
+                0,
+                11
+              ],
+              "summary": "形成切片调整、命中率88%、引用面板周五交付三条决议。",
+              "start_ms": 0,
+              "end_ms": 144000
+            }
+          ]
+        }
+      },
+      {
+        "idx": 2,
+        "agent": "decider",
+        "status": "ok",
+        "input": "12 段转写",
+        "output": "抽出 6 条，证据校验通过 6 条（丢弃 0 条）",
+        "tokens_in": 666,
+        "tokens_out": 812,
+        "latency_ms": 5468,
+        "cache_hit": false,
+        "evidence_count": 10,
+        "payload": {
+          "evidence_total": 10,
+          "evidence_valid": 10,
+          "grounded_rate": 1.0,
+          "dropped": 0
+        }
+      },
+      {
+        "idx": 3,
+        "agent": "planner",
+        "status": "ok",
+        "input": "12 段转写",
+        "output": "抽出待办 3 条，证据通过 3 条",
+        "tokens_in": 632,
+        "tokens_out": 1004,
+        "latency_ms": 6916,
+        "cache_hit": false,
+        "evidence_count": 5,
+        "payload": {
+          "evidence_total": 5,
+          "evidence_valid": 5,
+          "grounded_rate": 1.0,
+          "dropped": 0
+        }
+      },
+      {
+        "idx": 4,
+        "agent": "critic",
+        "status": "ok",
+        "input": "复核 9 条",
+        "output": "可信度 0.72，判掉 0 条结论，1 条待办降级保留，改写 2 条",
+        "tokens_in": 765,
+        "tokens_out": 1876,
+        "latency_ms": 11307,
+        "cache_hit": false,
+        "evidence_count": 9,
+        "payload": {}
+      },
+      {
+        "idx": 5,
+        "agent": "composer",
+        "status": "ok",
+        "input": "6 条结论 / 3 条待办",
+        "output": "知识库上线门槛已明确：检索命中率必须达到88%，未达标不上线。当前评测集命中率为82%，主要短板是长文档跨页问题答不准。为此，文档切片长度调整为520字、重叠80字，本周内完成调整并重跑命中率复测，效果尚待观察。引用面板周五前交付，支持点击跳转并在右上角显示支撑强度。问答环节中身份证、手机号一律打码，不直接送入模型。赵",
+        "tokens_in": 399,
+        "tokens_out": 164,
+        "latency_ms": 15429,
+        "cache_hit": false,
+        "evidence_count": 0,
+        "payload": {}
+      }
+    ]
+  },
+  "detail_status": "ready"
+}
