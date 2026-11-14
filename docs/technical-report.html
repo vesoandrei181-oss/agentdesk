@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>智协台 AgentDesk 技术文档</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 16mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+    font-size: 10.5pt; line-height: 1.72; color: #1f2430; margin: 0;
+  }
+  h1 { font-size: 21pt; margin: 0 0 6mm; letter-spacing: .5px; }
+  h2 { font-size: 14pt; margin: 8mm 0 3mm; padding-left: 3mm; border-left: 3.5px solid #4f46e5; }
+  h3 { font-size: 11.5pt; margin: 5mm 0 2mm; color: #2b3245; }
+  h4 { font-size: 10.5pt; margin: 3.5mm 0 1.5mm; color: #3b4256; }
+  p { margin: 0 0 2.6mm; text-align: justify; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.2mm; }
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.3pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #d8dce6; padding: 1.6mm 2.2mm; text-align: left; vertical-align: top; }
+  th { background: #f3f4f8; font-weight: 600; }
+  code, .mono { font-family: "Cascadia Mono", Consolas, monospace; font-size: 8.8pt; background: #f4f5f8; padding: 0 1mm; border-radius: 2px; }
+  pre { background: #f7f8fa; border: 1px solid #e4e7ee; border-radius: 3px; padding: 2.5mm 3mm; overflow: hidden;
+        font-family: "Cascadia Mono", Consolas, monospace; font-size: 8.6pt; line-height: 1.55; margin: 2mm 0 3.5mm; }
+  .lead { color: #4a5164; }
+  .note { background: #f7f8fc; border-left: 3px solid #9aa3bf; padding: 2.5mm 3mm; margin: 2mm 0 3.5mm; font-size: 9.6pt; }
+  .kv { display: grid; grid-template-columns: 34mm 1fr; gap: 1.2mm 3mm; font-size: 9.8pt; margin: 2mm 0 3mm; }
+  .kv b { color: #2b3245; }
+  .cover { height: 246mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
+  .cover .tag { color: #4f46e5; font-size: 10pt; letter-spacing: 2px; margin-bottom: 4mm; }
+  .cover .sub { font-size: 11.5pt; color: #4a5164; margin-bottom: 10mm; }
+  .cover .meta { font-size: 9.8pt; color: #5b6377; line-height: 2; border-top: 1px solid #dfe3ec; padding-top: 5mm; }
+  .pagebreak { page-break-before: always; }
+  .toc { font-size: 10pt; }
+  .toc div { display: flex; justify-content: space-between; border-bottom: 1px dotted #d6dae4; padding: 1.2mm 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; }
+  .fig { margin: 2mm 0 4mm; }
+  .cap { font-size: 8.8pt; color: #6b7285; text-align: center; margin-top: 1mm; }
+  .arch { border: 1px solid #e0e4ee; border-radius: 4px; padding: 4mm; font-size: 9.2pt; background: #fcfcfe; }
+  .layer { border: 1px solid #dfe3f0; border-radius: 3px; padding: 2mm 3mm; margin-bottom: 2mm; background: #fff; }
+  .layer b { color: #4f46e5; }
+  .flow { display: flex; flex-wrap: wrap; gap: 2mm; margin: 2mm 0 4mm; }
+  .step { flex: 1 1 30mm; border: 1px solid #e0e4ee; border-radius: 3px; padding: 2mm; font-size: 8.8pt; background: #fbfbfd; }
+  .step em { display: block; font-style: normal; color: #4f46e5; font-size: 8.2pt; margin-bottom: .6mm; }
+  .good { color: #12805c; font-weight: 600; }
+  .warn { color: #b45309; font-weight: 600; }
+  footer { position: fixed; bottom: 4mm; left: 0; right: 0; text-align: center; font-size: 8pt; color: #9aa1b4; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="tag">AI 协同办公工具 · 参赛作品技术文档</div>
+  <h1>智协台 AgentDesk</h1>
+  <div class="sub">把一场会开成能追踪的决议、待办和可引用的知识</div>
+  <p class="lead" style="max-width:150mm">
+    一个由多 Agent 协作驱动的办公平台：会议转写进来，出去的是带原文引用、经过独立复核、
+    能直接变成任务和责任人的纪要与周报；文档修改以补丁形式呈现，逐句可审；
+    知识库问答每一句都指回原文档页码。文档记录了我们为什么这样设计、哪些选择被实测数据推翻过。
+  </p>
+  <div class="meta">
+    团队：孟嘉祺（产品设计与整体架构、后端编排与检索、部署运维）　杜春晓（前端工程与设计系统、交互可视化、测试与演示材料）<br />
+    学校：哈尔滨信息工程学院<br />
+    技术栈：FastAPI + SQLAlchemy + 自研 agentdesk_core / React 18 + TypeScript + Vite + Tailwind<br />
+    文档版本：v1.0　　日期：2026 年 9 月
+  </div>
+</section>
+
+<h2 style="margin-top:0">目录</h2>
+<div class="toc">
+  <div><span>1　项目概述</span><span>3</span></div>
+  <div><span>2　需求分析</span><span>5</span></div>
+  <div><span>3　系统架构设计</span><span>7</span></div>
+  <div><span>4　AI 技术方案（选型、集成、优化）</span><span>9</span></div>
+  <div><span>5　核心功能实现</span><span>13</span></div>
+  <div><span>6　测试与部署</span><span>15</span></div>
+  <div><span>7　创新点</span><span>17</span></div>
+  <div><span>8　总结与展望</span><span>19</span></div>
+  <div><span>附录 A　接口清单　附录 B　目录结构</span><span>20</span></div>
+</div>
+
+<h2 class="pagebreak">1　项目概述</h2>
+
+<h3>1.1 我们要解决的问题</h3>
+<p>
+  开完会之后的事情，通常比开会本身更耗人。一场一小时的评审会，散会后要有一个人回听录音、
+  整理纪要、把结论摘出来、把待办派下去，再在周报里复述一遍——这件事在中小团队里往往落在同一个人身上，
+  每次要花 40 分钟到 2 小时。更麻烦的是三个副作用：
+</p>
+<ul>
+  <li><b>结论失真。</b>整理者会不自觉地"顺"一遍逻辑，把"先看看"写成"已决定"，一周后没人说得清当时到底定了什么。</li>
+  <li><b>待办蒸发。</b>会上说"这个赵鹏跟一下"，落到文档里只剩一句"跟进相关工作"，没有责任人、没有时间。</li>
+  <li><b>知识不沉淀。</b>决议散落在聊天记录、文档、邮件里，三个月后新人问"我们的引用阈值是多少"，没人答得上来。</li>
+</ul>
+<p>
+  市面上的 AI 会议工具大多解决了"把话变成字"，但没解决"字能不能被信任"。我们做 AgentDesk 的出发点很朴素：
+  <b>AI 的输出必须能点回到原始证据</b>。做不到这一点，纪要越快，团队越不敢用。
+</p>
+
+<h3>1.2 一句话定义</h3>
+<div class="note">
+  AgentDesk 是一个多 Agent 协同的办公平台：会议转写 → 带证据的纪要 → 可追踪的任务 → 周报 → 可引用的知识库，
+  全过程可审计、可回滚、成本可见。
+</div>
+
+<h3>1.3 交付形态</h3>
+<table>
+  <tr><th style="width:28mm">交付物</th><th>内容</th><th style="width:34mm">位置</th></tr>
+  <tr><td>Web 应用</td><td>12 个页面：工作台、会议纪要、会议详情（4 个 Tab）、智能写作、知识库、任务看板、智能周报、运行观测、运行详情、设置、登录</td><td><span class="mono">apps/web</span></td></tr>
+  <tr><td>后端服务</td><td>48 个 REST 接口 + 2 个 SSE 流式接口，7 个业务路由模块</td><td><span class="mono">apps/api</span></td></tr>
+  <tr><td>Agent 内核</td><td>6 个协作 Agent + 3 个辅助 Agent，编排、证据校验、缓存、路由、脱敏各自独立成模块</td><td><span class="mono">apps/api/app/core</span></td></tr>
+  <tr><td>演示数据</td><td>3 场会议（26 段转写 / 11 条决议 / 10 条待办）、16 条任务、3 份知识资料、14 天运行历史</td><td><span class="mono">apps/api/seed</span></td></tr>
+  <tr><td>评测与脚本</td><td>质量评测、链路计时、推理开关对照实验、端到端冒烟</td><td><span class="mono">scripts/</span></td></tr>
+  <tr><td>部署</td><td>Dockerfile + compose + Caddy 反代 + Cloudflare 隧道三种方案</td><td><span class="mono">deploy/</span></td></tr>
+</table>
+
+<h3>1.4 立项时的三条自我约束</h3>
+<ol>
+  <li><b>不假装模型永远正确。</b>凡是模型给的结论，必须带得出原文引文；带不出就标"未决"，而不是硬凑一条。</li>
+  <li><b>不隐藏成本。</b>每次调用都记 token、耗时、费用，界面上能查到每个 Agent 花了多少，用户能切"质量/均衡/成本"档。</li>
+  <li><b>不做成一次性演示。</b>演示数据要能撑住评审，但真实链路必须能跑通——所以我们宁可花时间把延迟从 410 秒压到 30 秒，也不写死一份假结果。</li>
+</ol>
+
+<h2 class="pagebreak">2　需求分析</h2>
+
+<h3>2.1 目标用户</h3>
+<p>
+  我们把用户收窄到"5 到 30 人的产品/研发团队"。这个规模有三个特征：会多、没有专职 PMO、文档靠自觉。
+  再大的团队会有专门的会议系统，再小的团队不需要任务看板，反而都不适合。
+</p>
+<table>
+  <tr><th style="width:30mm">角色</th><th>核心诉求</th><th>最在意的失败</th></tr>
+  <tr><td>会议组织者（产品/项目负责人）</td><td>散会后 10 分钟内发出纪要和待办</td><td>纪要被同事指出"我当时不是这个意思"</td></tr>
+  <tr><td>执行者（开发/设计）</td><td>知道这周该干什么、什么时候交</td><td>待办没有截止日，或者被人凭空指派</td></tr>
+  <tr><td>新成员</td><td>快速问出"我们之前是怎么定的"</td><td>AI 编一个看起来很像的答案</td></tr>
+  <tr><td>团队负责人</td><td>看清这周产出、风险、谁的负载满了</td><td>周报是流水账，看不出问题</td></tr>
+</table>
+
+<h3>2.2 需求从哪来</h3>
+<p>
+  我们没有做大规模问卷，而是把自己日常的会议记录翻出来，统计了三类高频动作：<b>回听定位</b>（想确认某句话是谁说的）、
+  <b>结论摘取</b>（哪些是定了的，哪些只是聊过）、<b>待办转录</b>（谁做什么、什么时候）。这三件事占了整理时间的绝大部分，
+  也正好对应后面六个 Agent 里的后四个。
+</p>
+<p>
+  另一个观察来自工具使用习惯：团队已经在用在线文档，如果 AI 只能"整篇重写"，他们是不敢按下去保存的——
+  因为不知道哪一句被改动了。这直接决定了我们要做"补丁级"的写作，而不是"一键生成文章"。
+</p>
+
+<h3>2.3 功能范围</h3>
+<table>
+  <tr><th style="width:26mm">模块</th><th>做什么</th><th style="width:44mm">明确不做</th></tr>
+  <tr><td>会议纪要</td><td>粘贴/导入转写 → 分段、抽取决议与待办、独立复核、生成摘要、导出 Markdown/Word</td><td>不做实时录音与语音识别（转写交给专业工具，我们负责理解）</td></tr>
+  <tr><td>证据链</td><td>每条决议挂原文引文、说话人、时间点，点击跳转到转写原文</td><td>不做音频波形对齐（时间戳够用）</td></tr>
+  <tr><td>智能写作</td><td>文档编辑 + 一句话指令改写，输出可逐条勾选的差异块</td><td>不做多人实时协同编辑（先解决 AI 介入的可控性）</td></tr>
+  <tr><td>知识库</td><td>上传 PDF/Word/Markdown，混合检索 + 流式问答 + 引用强弱标注</td><td>不做网页爬取，不做图片 OCR</td></tr>
+  <tr><td>任务看板</td><td>看板/表格双视图、状态流转、P50/P90 工期预测、从会议一键生成任务</td><td>不做甘特图与资源排期算法</td></tr>
+  <tr><td>周报</td><td>按人聚合本周产出、生成正文、可复制</td><td>不做向上汇报的绩效评价</td></tr>
+  <tr><td>运行观测</td><td>Agent 调用量、token、成本、缓存命中、失败率、逐步 Trace</td><td>不做告警与工单</td></tr>
+</table>
+
+<h3>2.4 非功能需求</h3>
+<table>
+  <tr><th style="width:34mm">维度</th><th>目标</th><th>实测</th></tr>
+  <tr><td>一场会（12 段转写）分析耗时</td><td>&lt; 60 秒</td><td class="good">31.5 ~ 39.1 秒</td></tr>
+  <tr><td>单场会成本</td><td>&lt; $0.05</td><td class="good">$0.0055 ~ $0.0065</td></tr>
+  <tr><td>知识库问答首字延迟</td><td>&lt; 2 秒</td><td class="good">约 1.1 秒（流式首 token）</td></tr>
+  <tr><td>知识库问答整轮</td><td>&lt; 10 秒</td><td>7.16 秒（含精排与引用校验）</td></tr>
+  <tr><td>检索命中率</td><td>≥ 85%</td><td class="good">100%（12 题，见 §6.3）</td></tr>
+  <tr><td>引用支撑率</td><td>≥ 60%</td><td class="good">72.2%（26/36）</td></tr>
+  <tr><td>前端首包（gzip）</td><td>&lt; 120 kB</td><td class="good">35.7 kB + 53.9 kB（React 单独分包）</td></tr>
+  <tr><td>单测覆盖的关键路径</td><td>差异块、补丁、引用、脱敏、预测、路由</td><td class="good">20 条用例全绿</td></tr>
+</table>
+
+<h2 class="pagebreak">3　系统架构设计</h2>
+
+<h3>3.1 总体架构</h3>
+<p>
+  前后端分离，后端同时托管前端构建产物，这样"演示地址"只有一个，评审不需要配两个域名。
+  AI 相关逻辑全部收在 <span class="mono">app/core</span> 下，路由层只做参数校验与落库，方便单独测试和替换模型。
+</p>
+<div class="arch">
+  <div class="layer"><b>表现层</b>　React 18 + TypeScript + Vite + Tailwind　｜　12 个页面路由、SSE 流式渲染、Diff 勾选交互、看板拖拽前的手动流转</div>
+  <div class="layer"><b>接口层</b>　FastAPI 路由（auth / meetings / docs / kb / tasks / insights / prefs）　｜　Bearer 鉴权、工作区上下文、后台任务、SSE</div>
+  <div class="layer"><b>Agent 编排层</b>　pipeline（会议）· writer（写作）· rag（问答）· predict（工期）　｜　每一步写 RunStep，可回放</div>
+  <div class="layer"><b>AI 基础设施</b>　结构化输出契约（JSON 自愈）· 证据校验 · 语义缓存 · 四档模型路由 · PII 脱敏 · 成本记账</div>
+  <div class="layer"><b>数据层</b>　SQLite（WAL）+ SQLAlchemy 2.0　｜　14 张表：用户/工作区/会议/片段/决议/待办/文档/知识库/切片/任务/运行/步骤/会话/审计</div>
+</div>
+<div class="cap">图 3-1　分层结构。AI 能力被当作基础设施，而不是散落在业务代码里的调用</div>
+
+<h3>3.2 为什么这样分层</h3>
+<p>
+  最早我们把这些函数直接写在路由里，很快就遇到两个问题：一是换模型要改十几处；二是"某个 Agent 慢"这种问题
+  在日志里根本看不出来。拆出编排层之后，每次调用都会写一条 <span class="mono">RunStep</span>（输入摘要、输出摘要、token、耗时、
+  是否命中缓存、证据条数），前端的 Agent Trace 页面就是这个表的直接投影——它不是给评委看的装饰，是我们自己调优时的仪表盘。
+</p>
+
+<h3>3.3 数据模型要点</h3>
+<table>
+  <tr><th style="width:26mm">表</th><th>关键字段</th><th>设计说明</th></tr>
+  <tr><td>meetings</td><td>title, status(draft/processing/ready/failed), meeting_date, attendees, summary, topics, trace_id</td><td>topics 存 JSON，保留议题与段落编号的映射，用于"议题脉络"点击回跳</td></tr>
+  <tr><td>segments</td><td>idx, speaker, start_ms, end_ms, text</td><td>idx 是证据定位的锚点，引文校验靠它回查</td></tr>
+  <tr><td>decisions</td><td>text, kind(decision/risk/open_question), evidence(JSON), confidence, grounded, status</td><td>kind 区分"定了"和"没定"，这是防止结论失真的核心字段</td></tr>
+  <tr><td>action_items</td><td>text, owner_name, due_date, priority, evidence, task_id</td><td>task_id 回写，实现"会议待办 → 看板任务"的单向可追溯</td></tr>
+  <tr><td>chunks</td><td>kb_doc_id, page, section, text, tokens, embedding</td><td>embedding 是 512 维本地哈希向量，落库避免每次重算</td></tr>
+  <tr><td>runs / run_steps</td><td>kind, model, tokens_in, tokens_out, cost_usd, latency_ms, cache_hits / agent, status, payload</td><td>成本与质量的所有数字都来自这里，不做二次统计</td></tr>
+</table>
+
+<h3>3.4 会议分析流水线</h3>
+<p>
+  六个 Agent 串成一条流水线，其中"抽决议"和"抽待办"两步并行，因为它们都只依赖分段结果，彼此没有先后关系。
+  串行的部分只保留真正有依赖的环节。
+</p>
+<div class="flow">
+  <div class="step"><em>① scribe</em>清洗转写、识别说话人、去掉口头语</div>
+  <div class="step"><em>② segmenter</em>切议题，给每段打主题标签</div>
+  <div class="step"><em>③ decider</em>抽决议/风险/未决问题 + 引文</div>
+  <div class="step"><em>④ planner</em>抽待办：谁、做什么、何时</div>
+  <div class="step"><em>⑤ critic</em>独立复核：证据是否支持、有无超范围</div>
+  <div class="step"><em>⑥ composer</em>写成给人看的纪要正文</div>
+</div>
+<div class="cap">图 3-2　③④ 并行执行；⑤ 不是"再润色一遍"，而是带着质疑立场重读</div>
+
+<h4>失败时的降级路径</h4>
+<p>
+  每个步骤都包在 <span class="mono">try/except</span> 里，任何一步失败都不会让整场会失败：
+  模型返回非法 JSON 会触发"契约自愈"（见 §4.3）重试两次；仍然失败则记一条 warning，
+  用规则兜底（例如摘要退化为"前三条决议拼接"）。界面上会显示"哪一步降级了"，而不是假装成功。
+</p>
+
+<h2 class="pagebreak">4　AI 技术方案</h2>
+
+<h3>4.1 为什么是六个 Agent，不是一个大提示</h3>
+<p>
+  我们最初写的是一个 1200 字的大提示词，一次调用产出"纪要 + 结论 + 待办"。它跑得通，但有三个硬伤：
+</p>
+<ol>
+  <li><b>无法定位错误。</b>输出不对时，你不知道是没听清、没抽到，还是写歪了。</li>
+  <li><b>提示词互相干扰。</b>"忠实摘要"和"大胆归纳"是两种语气，塞进一个提示词会互相稀释。</li>
+  <li><b>没法分级优化。</b>清洗这种简单任务和大模型推理捆在一起，成本降不下来。</li>
+</ol>
+<p>
+  拆成六步之后，每一步都有独立的输入契约、输出契约和失败兜底；更重要的是，每一步可以单独挑模型档位——
+  清洗用快模型、复核用大模型，这是成本能压到 $0.006 的前提。
+</p>
+<div class="note">
+  <b>反面经验：</b>我们试过再加一个"格式化 Agent"专门把结果转成 JSON，最后删掉了。
+  格式化应该是代码的事，让模型重复输出一遍纯属浪费 token，还引入了新的不确定性。
+  这件事最后是靠统一的 <span class="mono">call_json</span> 契约解决的（§4.3）。
+</div>
+
+<h3>4.2 模型选型：用实测推翻了"大模型更准"的直觉</h3>
+<p>
+  我们只接了一家供应商的两种模型：<span class="mono">deepseek-flash</span>（快）与 <span class="mono">deepseek-v4-pro</span>（强推理，
+  默认开启思维链）。直觉上"抽决议"这种需要判断的任务应该用 pro。于是写了一个对照脚本，
+  拿同一段 8 段转写、同一个 decider 提示词、<span class="mono">max_tokens=4000</span>，跑四种组合：
+</p>
+<table>
+  <tr><th>组合</th><th>耗时</th><th>输出 token</th><th>抽出条数</th><th>证据通过率</th></tr>
+  <tr><td>flash + 关闭思维链</td><td class="good">3.9 s</td><td>552</td><td>7</td><td>100%</td></tr>
+  <tr><td>flash + 开启思维链</td><td>7.7 s</td><td>1517</td><td>7</td><td>100%</td></tr>
+  <tr><td>pro + 关闭思维链</td><td>6.4 s</td><td>558</td><td>6</td><td>100%</td></tr>
+  <tr><td>pro + 开启思维链</td><td class="warn">49.5 s</td><td class="warn">4000（全部被思维链吃掉）</td><td class="warn">0</td><td>—</td></tr>
+</table>
+<div class="cap">表 4-1　数据来自 <span class="mono">scripts/bench_reasoning.py</span>，结果落在 <span class="mono">data/bench_reasoning.json</span></div>
+<p>
+  最后一行是关键：<b>开启思维链的 pro 在 4000 token 预算内没能产出任何结果</b>——思维链把预算耗尽，
+  正文为空，接口返回 <span class="mono">finish_reason=length</span>。这个现象在长提示词下非常容易踩到，
+  而它看起来像"模型抽不出东西"，而不是"预算不够"。
+</p>
+<p>
+  结论被固化进路由策略：<b>抽取类任务统一用快模型并关闭思维链</b>，质量不掉，延迟降一个数量级；
+  只有在"质量优先"档才让 decider / planner / critic / verifier 走 pro。这不是拍脑袋，是一个可复现的实验。
+</p>
+
+<h3>4.3 结构化输出契约：让模型输出可编程</h3>
+<p>
+  所有需要结构化结果的调用都走 <span class="mono">call_json(agent, system, user, ...)</span>，它负责四件事：
+</p>
+<ol>
+  <li><b>容错解析。</b>模型偶尔会在 JSON 前后加 ```json 围栏或一句解释，解析器先剥离围栏、再截取第一个 <span class="mono">{</span> 到最后一个 <span class="mono">}</span>。</li>
+  <li><b>预算自愈。</b>如果 <span class="mono">finish_reason == "length"</span> 或正文为空，把 <span class="mono">max_tokens</span> 乘以 2.2（上限 8000）重试，
+      而不是把截断的半截 JSON 当结果往下传。§4.2 里 pro 的那个坑就是靠这条兜住的。</li>
+  <li><b>降级不静默。</b>重试两次仍失败，抛 <span class="mono">LLMFormatError</span>，由调用方决定降级策略；同时把原始输出的前 200 字写进异常，
+      排查时不用复现。</li>
+  <li><b>记账。</b>每次调用的 token、耗时、成本、是否命中缓存都写进返回的 <span class="mono">meta</span>，由编排层汇总成 Run。</li>
+</ol>
+<pre>def call_json(agent, system, user, *, temperature=0.2, max_tokens=1600, retries=2):
+    for attempt in range(retries + 1):
+        comp, provider = chat_safe(messages, model=..., json_mode=True, thinking=runtime.thinking_for(agent))
+        text = _strip_fence(comp.text)
+        if text:
+            try:
+                return _loads(text), meta          # meta 带 provider / thinking / tokens / cost
+            except json.JSONDecodeError:
+                last = text
+        if comp.raw.get("finish_reason") == "length" or not comp.text:
+            max_tokens = min(int(max_tokens * 2.2), 8000)   # 预算自愈
+    raise LLMFormatError(f"{agent} 连续 {retries + 1} 次未返回合法 JSON；最后输出前缀：{last[:200]}")</pre>
+
+<h3>4.4 证据链：把"看起来对"变成"查得到"</h3>
+<p>
+  这是整个项目的技术核心。模型输出每条决议时必须附带 <span class="mono">{segment_idx, quote}</span>，代码在落库前做两步校验：
+</p>
+<ol>
+  <li><b>引文回查。</b>用 <span class="mono">difflib.SequenceMatcher</span> 把 quote 与对应 segment 的原文比对，重合度低于 0.55 的条目直接丢弃。
+      这一步挡的是"模型自己编了一句很像的话"。</li>
+  <li><b>完整性判定。</b>丢弃后如果某条决议没有剩余证据，它会被降级为 <span class="mono">open_question</span>（未决问题），
+      而不是硬留成决议。界面上会显示"未决"标签，提示"这条需要人确认"。</li>
+</ol>
+<div class="note">
+  <b>阈值怎么来的：</b>拿 120 条人工标注的引文对做扫描，阈值 0.45 时误留比例 11%，0.55 时降到 3.8%，
+  再往上会把口音重、转写有错的正常条目也误杀。0.55 是"漏"和"错"之间的折中，不是拍的。
+</div>
+<p>
+  演示数据里我们特意留了一条没有证据的条目——它来自一个跑题讨论，模型抽出了"要评估移动端"，
+  原文却没有任何人承诺。系统把它标成未决，评审时这是一个可以当场验证的点：点开看，确实没有引文。
+</p>
+
+<h3>4.5 混合检索与引用校验</h3>
+<p>
+  知识库问答是"检索 + 生成 + 校验"三段。检索用 BM25（稀疏，认关键词）与向量（稠密，认语义）双路召回，
+  再用 RRF 融合排序，最后让 reranker Agent 结合问题重新排一次序，取前 6 段进上下文。
+</p>
+<pre>score_rrf(d) = Σ_over_lists  1 / (60 + rank_list(d))
+
+BM25      →  "0.55" / "阈值" 这类字面命中
+向量(512d) →  "引用校验怎么定阈值" ≈ "引文重合度门槛" 这类换说法命中
+RRF       →  两路都靠前的片段胜出，单路突兀的高分被压住
+reranker  →  用问题重排，把"能直接回答"的片段提到前面</pre>
+<p>
+  <b>引用校验</b>是这一段里最难做对的地方。最初我们用"回答句子与片段文本的序列相似度"判强/弱，
+  结果所有引用都被判成"弱"——因为回答是改写过的，字面重合天然低，这个方法没有区分力。
+  改成了两步：
+</p>
+<ul>
+  <li><b>覆盖率 + 对比度。</b>先算回答句子有多少字面片段出现在候选片段中（覆盖率），
+      再把它与"和其他候选片段的平均覆盖率"比较，得到对比度 <span class="mono">cover / (cover + baseline)</span>。
+      真引用时对比度显著高于凑数引用，实测从"几乎全弱"变成"72% 强"。</li>
+  <li><b>数字硬约束。</b>如果回答句子里出现数字，该数字必须原文出现过，否则直接判弱。
+      模型编数字是引用场景里最常见的事故，这一条拦得很值。</li>
+</ul>
+
+<h3>4.6 语义缓存与四档路由</h3>
+<p>
+  语义缓存解决"同一类问题反复问"：新问题的向量与历史问题余弦相似度 ≥ 0.95 时直接返回上次答案，并在界面上标明"命中缓存"。
+  阈值取 0.95 是保守选择——宁可少命中，也不要答非所问。演示数据里 31 次运行中有 26 次缓存命中，
+  这解释了为什么总成本只有 $0.075。
+</p>
+<p>
+  路由分四档，切换即时生效（写在 <span class="mono">data/runtime.json</span>，重启不丢）：
+</p>
+<table>
+  <tr><th style="width:24mm">档位</th><th>模型选择</th><th>适用场景</th><th>单场会成本</th></tr>
+  <tr><td>质量优先</td><td>关键 Agent（decider/planner/critic/verifier）走 pro</td><td>对外交付前跑一遍</td><td>约 $0.02</td></tr>
+  <tr><td>均衡（默认）</td><td>全部走 flash，关闭思维链</td><td>日常使用</td><td class="good">约 $0.006</td></tr>
+  <tr><td>成本优先</td><td>全部走 flash，温度与预算下调</td><td>批量回溯历史会议</td><td>约 $0.004</td></tr>
+  <tr><td>本地模型</td><td>Ollama 兼容端点（qwen2.5 等）</td><td>数据不出内网</td><td>0（自建算力）</td></tr>
+</table>
+
+<h3>4.7 PII 脱敏网关</h3>
+<p>
+  会议转写里经常出现手机号、身份证、银行卡、邮箱。脱敏网关在调用模型之前把四类实体替换成占位符
+  （<span class="mono">&lt;PHONE_1&gt;</span> 这类），模型返回后再按映射还原。它带来两个附加好处：
+</p>
+<ul>
+  <li><b>审计友好。</b>落库的是脱敏后的内容，日志里不出现真实号码；</li>
+  <li><b>可度量。</b>每条 Run 会记录本次掩码数量，界面上能看出"这场会有 3 处敏感信息"。</li>
+</ul>
+<p>
+  脱敏对模型效果几乎没有影响——它把注意力从"这是谁的电话"转移到"这里有一个号码"，
+  而后者才是纪要需要的语义。
+</p>
+
+<h3>4.8 优化策略与结果</h3>
+<table>
+  <tr><th style="width:34mm">优化项</th><th>做法</th><th>效果</th></tr>
+  <tr><td>关闭思维链</td><td>抽取类 Agent 在请求里显式传 <span class="mono">thinking: disabled</span></td><td>decider 从 49.5 s → 3.9 s（-92%）</td></tr>
+  <tr><td>两步并行</td><td>decider 与 planner 用线程池并发，写库仍在主线程</td><td>流水线减少约 11 s</td></tr>
+  <tr><td>模型降档</td><td>均衡档全部走 flash</td><td>单场成本 $0.02 → $0.006</td></tr>
+  <tr><td>预算自愈</td><td>截断时按 2.2 倍加预算重试，而不是回灌错误文本</td><td>消除"空输出"类失败</td></tr>
+  <tr><td>语义缓存</td><td>0.95 阈值 + 落盘 JSONL</td><td>重复咨询零 token</td></tr>
+  <tr><td>HTTP 直连</td><td>httpx 客户端统一 <span class="mono">trust_env=False</span></td><td>绕开本机代理导致的 TLS 中断</td></tr>
+  <tr><td>前端分包</td><td>React 单独 chunk，路由级懒加载</td><td>首包 gzip 35.7 kB</td></tr>
+</table>
+<div class="note">
+  流水线总耗时：<b>410.3 秒 → 31.5 秒</b>（同一段 8-12 段转写，均衡档）。分步耗时（12 段样本）：
+  scribe 2.4 s、segmenter 2.8 s、decider 9.9 s、planner 11.0 s（并行）、critic 12.6 s、composer 2.6 s。
+  现在最大的开销是 critic，这符合预期——复核本来就该慢。
+</div>
+
+<h2 class="pagebreak">5　核心功能实现</h2>
+
+<h3>5.1 会议纪要：从转写到可追踪的决议</h3>
+<p>
+  新建会议的入口接受两种输入：粘贴带时间戳的转写，或纯文本对话。前端会实时解析预览（识别
+  <span class="mono">[mm:ss]</span>、<span class="mono">说话人：</span> 前缀，无换行时按句聚合），
+  确认后写入数据库再触发分析。分析默认走后台任务，页面每 2.6 秒轮询一次状态，不用干等。
+</p>
+<p>
+  详情页四个 Tab 是产品设计的重点：
+</p>
+<table>
+  <tr><th style="width:24mm">Tab</th><th>内容</th><th>想解决的问题</th></tr>
+  <tr><td>纪要概览</td><td>摘要、议题脉络（按话题聚类，每个话题带段落编号）、行动项</td><td>没参会的人先看这一页就够</td></tr>
+  <tr><td>证据链</td><td>按决议/风险/未决分组，每条带引文、说话人、时间点、置信度</td><td>"凭什么这么说"当场可查</td></tr>
+  <tr><td>原始转写</td><td>全文，点击决议可定位并高亮对应段落</td><td>从结论跳回原话</td></tr>
+  <tr><td>Agent Trace</td><td>六步执行链、每步输入输出摘要、token、耗时、质量指标</td><td>出问题时知道哪一步歪了</td></tr>
+</table>
+<p>
+  导出支持 Markdown 与 Word（python-docx 生成，宋体 10.5，表格用 Light Grid Accent 1），
+  导出的 Word 拿去直接发群里不用再排版。"转为任务"会把待办批量写进看板，并回写 <span class="mono">task_id</span>，
+  从此任务卡片上能看到"来源：Q3 产品路线评审会"。
+</p>
+
+<h3>5.2 智能写作：补丁，而不是重写</h3>
+<p>
+  这里是产品观差异最大的地方。<b>我们不让模型重写整篇文档。</b>提示词明确要求它输出补丁列表：
+</p>
+<pre>{"patches": [{"op": "replace | insert_after | delete",
+              "target": "原文中连续存在的一段文字（8-60 字）",
+              "new_text": "替换后的文本",
+              "reason": "为什么这样改，30 字内"}],
+ "style_note": "对全文风格的一句话点评"}</pre>
+<p>
+  后端拿到补丁后逐条在原文里定位并应用（<span class="mono">_apply_patches</span>），
+  然后对"原文 vs 修订稿"做行级 diff 得到编辑块。定位失败的补丁被跳过并记录，不会污染其他内容。
+  前端把每个编辑块渲染成一张卡片，默认勾选，用户可逐条取消，确认后调 <span class="mono">apply</span> 重建全文。
+</p>
+<p class="mono" style="font-size:9pt">实测（文档《项目周报》301 字，四条指令）：补丁定位成功率 23/23 = 100%，平均耗时 11.2 秒。</p>
+<div class="note">
+  <b>为什么坚持补丁：</b>办公文档里 80% 的句子是对的。整篇重写会把对的改坏、把语气改陌生，
+  用户不敢保存。补丁 + 差异卡片让"改了什么、为什么改"逐条可见，接受多少由人决定——
+  这才是办公场景能落地的 AI 写作。
+</div>
+<p>
+  另外还叠了一层不花 token 的规则体检：平均句长、45 字以上长句数、程度副词密度、中英混排空格、重复标点、被动句。
+  这些规则既能进"文本体检"面板，也能在补丁之外提示"这里本来就有问题"。
+</p>
+
+<h3>5.3 知识库问答：流式 + 引用</h3>
+<p>
+  上传支持 PDF / Word / Markdown / TXT / HTML，解析后按 Markdown 标题切段、再按长度切（目标 520 字，重叠 80 字），
+  落库时记录页码与章节。问答走 SSE：先推一次 <span class="mono">retrieval</span> 事件（把召回片段先显示出来），
+  再逐 token 推正文，最后推 <span class="mono">done</span>（含引用校验结果）。用户能立刻看到"它在查什么"，
+  而不是对着转圈等 7 秒。
+</p>
+<p>
+  引用卡片上标"强支撑 / 弱支撑"：强支撑说明这句话确实来自该片段，弱支撑提示"这条可能是模型自己的总结"。
+  这个标注比"显示来源"更有用——它让人知道哪句可以直接引用，哪句需要自己回查。
+</p>
+
+<h3>5.4 任务看板与工期预测</h3>
+<p>
+  看板四列（待开始 / 进行中 / 待验收 / 已完成），卡片上有负责人、截止日、风险徽标和一条 P50/P90 进度条。
+  工期预测是一个轻量的对数正态模型，不是"猜一个数"：
+</p>
+<pre>p50 = BASE_HOURS[priority] × 动词系数 × (1 + 依赖 0.18) × (1 + 负责人负载 0.08)
+σ   = 0.34 + 0.16（描述 &lt; 12 字）+ 0.10（有依赖）+ 0.08（含模糊动词，上限 0.85）
+p90 = p50 × exp(1.2816 × σ)</pre>
+<p>
+  模糊动词（调研、梳理、评估、优化、排查）会显著拉高 σ——因为这类任务的边界本来就不清楚，
+  给出一个确定数字反而是误导。看板上因此显示"2.9 / 5.0 天"而不是"预计 3 天"：
+  告诉使用者"大概率三天，但拖到五天的可能性不小"。
+</p>
+
+<h3>5.5 智能周报</h3>
+<p>
+  周报页做成两段：<b>数据面板秒出，正文按需生成</b>。左侧面板（团队产出、本周会议、任务分布）
+  全部由本地规则聚合，不调模型；右侧正文点一下才生成，结果按"任务指纹"缓存，
+  数据没变就不重复花钱。这个设计是被一次事故逼出来的——最初把生成放在接口里同步执行，
+  用户打开页面要等 30 到 60 秒，看起来就是白屏。
+</p>
+
+<h3>5.6 运行观测</h3>
+<p>
+  KPI（运行次数、token、成本、缓存命中）、14 天调用趋势、路由分配表、Agent 性能表（调用次数、token、平均耗时、
+  缓存、失败），以及逐次运行的 Trace 详情。这一页是我们自己排查问题的入口，
+  也是"成本可见"这条约束的落地方式。
+</p>
+
+<h2 class="pagebreak">6　测试与部署</h2>
+
+<h3>6.1 单元测试</h3>
+<p>
+  <span class="mono">apps/api/tests/test_core.py</span> 有 20 条用例，全部不依赖网络与数据库，1 秒内跑完。
+  挑的都是"改坏了会静默出错"的地方：
+</p>
+<table>
+  <tr><th style="width:44mm">用例组</th><th>验证什么</th><th>为什么必须有</th></tr>
+  <tr><td>差异块还原（3 条）</td><td>不勾选任何块时必须逐字还原原文；全选时等于修订稿</td><td>否则"全选应用"会悄悄吃掉内容</td></tr>
+  <tr><td>补丁应用（1 条）</td><td>replace / delete / insert_after 三种操作 + 定位失败要跳过</td><td>补丁是写作功能的核心</td></tr>
+  <tr><td>引用校验（3 条）</td><td>真引用判强、数字不符判弱、越界标 missing</td><td>这是"可信"的底线</td></tr>
+  <tr><td>切片与向量（2 条）</td><td>切片长度上限、余弦相似度方向正确</td><td>检索质量的前置条件</td></tr>
+  <tr><td>脱敏（1 条）</td><td>手机号/身份证被替换，且能还原</td><td>还原失败会毁掉原文</td></tr>
+  <tr><td>工期预测（3 条）</td><td>模糊动词拉高工时、p90 &gt; p50、临期时 slack 变小</td><td>方向错了整个看板就是错的</td></tr>
+  <tr><td>路由（7 条）</td><td>四档档位下模型与温度、思维链取值合法</td><td>防止把 pro 用回抽取任务</td></tr>
+</table>
+<p>结果：<span class="good">20 passed in 1.05s</span>。另外 <span class="mono">ruff check app</span> 无告警。</p>
+
+<h3>6.2 端到端链路</h3>
+<p>
+  <span class="mono">scripts/bench_pipeline.py</span> 走真实接口：登录 → 建会 → 写 12 段转写 → 同步分析 → 读详情与 Trace。
+  两次结果：
+</p>
+<table>
+  <tr><th>指标</th><th>第一次</th><th>第二次（critic 策略调整后）</th></tr>
+  <tr><td>总耗时</td><td>31.5 s</td><td>39.1 s</td></tr>
+  <tr><td>决议 / 待办</td><td>6 / 0（问题）</td><td class="good">6 / 3</td></tr>
+  <tr><td>证据通过</td><td>6/6</td><td>6/6</td></tr>
+  <tr><td>token（入/出）</td><td>3373 / 5040</td><td>3539 / 4104</td></tr>
+  <tr><td>成本</td><td>$0.00645</td><td>$0.00547</td></tr>
+</table>
+<p>
+  第一次跑出来待办是 0，原因是 critic 把 3 条待办全判掉了（转录里负责人说得很口语，critic 认为"证据不足"）。
+  我们由此改了两处：提示词里明确"待办即使信息不全也用 keep_low_confidence，只有负责人和日期都无处可查才 drop"；
+  代码里把"判掉"限制在决议类条目上，待办最多降置信度并在界面标"待确认"。
+  <b>这是一次典型的产品判断压过模型判断的修正</b>——漏掉决议是失准，漏掉待办是失职。
+</p>
+
+<h3>6.3 质量评测</h3>
+<p>
+  <span class="mono">scripts/eval_quality.py</span> 用 12 个有确定答案的问题（覆盖三份资料）测检索与引用，
+  再用 4 条写作指令测补丁定位：
+</p>
+<table>
+  <tr><th style="width:44mm">指标</th><th>结果</th><th>说明</th></tr>
+  <tr><td>检索命中率 hit@6</td><td class="good">12/12 = 100%</td><td>回答引用的片段里包含人工标注的目标资料</td></tr>
+  <tr><td>引用支撑率</td><td class="good">26/36 = 72.2%</td><td>被判为"强支撑"的引用占比</td></tr>
+  <tr><td>单轮问答平均耗时</td><td>7.16 s</td><td>含精排与引用校验；流式首字约 1.1 s</td></tr>
+  <tr><td>补丁定位成功率</td><td class="good">23/23 = 100%</td><td>模型给的补丁能在原文里精确找到</td></tr>
+  <tr><td>写作平均耗时</td><td>11.2 s</td><td>301 字文档、单指令</td></tr>
+</table>
+<p>
+  支撑率 72% 而不是 100%，主要来自两类情况：模型在回答末尾补了一句概括性总结（没有对应原文，
+  理应判弱），以及跨页问题需要对两段信息做合并推理（单一引文无法覆盖整句）。
+  我们接受这个数字，因为它诚实地反映了"哪些句子可以照抄，哪些要自己判断"。
+</p>
+
+<h3>6.4 部署</h3>
+<p>
+  三条路径，按演示优先级排列，细节见 <span class="mono">deploy/README.md</span>：
+</p>
+<ol>
+  <li><b>快速公网演示（无需账号）：</b>后端同时托管前端构建产物，<span class="mono">cloudflared tunnel --url http://127.0.0.1:8000</span>
+      即可拿到一个 https 域名。本次评审用的就是这个地址，5 分钟可复现。</li>
+  <li><b>自有服务器：</b><span class="mono">docker compose -f deploy/docker-compose.yml up -d --build</span>，
+      内含 Caddy 自动申请证书、数据卷持久化、健康检查。</li>
+  <li><b>Cloudflare 命名隧道：</b>绑定自有域名，适合长期挂着。</li>
+</ol>
+<p>
+  环境变量集中在 <span class="mono">.env.example</span>，关键是 <span class="mono">LLM_API_KEY</span> 与
+  <span class="mono">LLM_BASE_URL</span>——换成任何 OpenAI 兼容端点（包括本地 Ollama）都能跑，
+  没有 key 时自动降级为离线 Mock，界面仍可完整演示。
+</p>
+
+<h3>6.5 已知问题与取舍</h3>
+<table>
+  <tr><th style="width:40mm">问题</th><th>现状</th><th>下一步</th></tr>
+  <tr><td>看板不能拖拽</td><td>用卡片上的状态流转按钮代替</td><td>接入 dnd-kit，保留键盘可达性</td></tr>
+  <tr><td>Critic 偶发过度保守</td><td>已限制"判掉"只作用于决议</td><td>给 critic 增加"必须引用原文才能 drop"的约束</td></tr>
+  <tr><td>长会议（&gt; 1.4 万字）</td><td>分段摘要策略尚未完全实现，末尾可能截断</td><td>按议题分段做层次摘要（map-reduce）</td></tr>
+  <tr><td>SQLite 并发</td><td>演示规模足够，写操作用 WAL</td><td>生产切 Postgres，已有 <span class="mono">DATABASE_URL</span> 开关</td></tr>
+  <tr><td>不支持语音直接上传</td><td>转写交给外部工具</td><td>接 whisper.cpp 本地转写</td></tr>
+</table>
+
+<h2 class="pagebreak">7　创新点</h2>
+
+<h3>7.1 技术创新点</h3>
+<h4>（1）证据链纪要与"未决"降级机制</h4>
+<p>
+  决议落库前必须通过引文回查（相似度 ≥ 0.55），否则降级为"未决问题"而不是假装成决议。
+  这让"哪些是定了的"变成可计算的事实，而不是整理者的判断。同类工具普遍只做"显示来源"，
+  我们把校验做进了写库路径。
+</p>
+
+<h4>（2）六 Agent 分工 + 独立复核（critic 的第二意见）</h4>
+<p>
+  复核 Agent 的提示词是"你是质检员，唯一职责是找茬"，它不重写，只判断能不能入档。
+  并且我们在代码层给"判掉"加了权限边界：能判掉结论，不能判掉待办。
+  这是"模型判断 + 产品规则"的混合裁决，比纯模型或纯规则都稳。
+</p>
+
+<h4>（3）补丁级写作 + 逐块接受</h4>
+<p>
+  模型只输出 <span class="mono">{op, target, new_text, reason}</span>，代码负责定位与应用，
+  diff 负责呈现。定位失败只丢这一条。实测 23/23 补丁全部命中，用户可按块接受。
+  它把"AI 改写文档"从不可控的全量替换，变成可控的、可审计的编辑建议。
+</p>
+
+<h4>（4）对比度引用校验（覆盖率 + 数值硬约束）</h4>
+<p>
+  用"与目标片段的覆盖率相对于其他片段的对比度"判强弱，再加"数字必须在原文出现"的硬约束。
+  这解决了改写型回答在字面相似度下全被判弱的问题，实测支撑率从近似 0 提升到 72.2%。
+</p>
+
+<h4>（5）语义缓存 + 四档模型路由 + 预算自愈</h4>
+<p>
+  三件事共同把成本压到 $0.006/场：缓存挡住重复咨询，路由把简单任务交给快模型，
+  预算自愈拦住"思维链吃光预算导致空输出"这类静默失败。其中"pro 开思维链在 4000 token 内产出 0 条"
+  是我们自己测出来的反直觉结论，已经固化进默认策略。
+</p>
+
+<h3>7.2 应用创新点</h3>
+<h4>（6）会议 → 任务 → 周报的闭环</h4>
+<p>
+  待办从会议里长出来，带着证据进看板，周报再从看板聚合。这条链路让"会上说的"和"这周做的"
+  第一次对得上——任务卡片上能看到来源会议，周报能算出覆盖率（哪些任务有明确负责人和截止日）。
+</p>
+
+<h4>（7）Agent Trace 作为产品功能（而不是运维日志）</h4>
+<p>
+  普通用户也能看到六个 Agent 每一步做了什么、花了多少、证据通过几条。它把"黑箱"变成"可解释"，
+  也让"AI 帮了多少忙"从主观感受变成可截图的数字（例如"证据覆盖率 93%，评审打分 88"）。
+</p>
+
+<h4>（8）P50/P90 双值工期与风险可视化</h4>
+<p>
+  不用单一预计时间，而是给区间：p50 是"大概率"，p90 是"要做好拖到这时候的准备"，
+  模糊动词会显著拉宽区间。看板上用进度条呈现，负责人一眼能看出哪张卡最危险。
+</p>
+
+<h4>（9）脱敏网关 + 成本可见，让 AI 敢在真实办公场景用</h4>
+<p>
+  敏感信息在出网前替换、返回后还原；每一分钱花在哪个 Agent 上都可查。
+  这两件事不是功能点，是"团队敢不敢把它放进日常工作流"的前提。
+</p>
+
+<h2 class="pagebreak">8　总结与展望</h2>
+<p>
+  这个项目里我们花时间最多的不是写页面，而是三件"看不见"的事：
+  让模型输出可校验（证据链、引用校验）、让失败可降级（契约自愈、每步兜底）、
+  让成本可控（路由、缓存、并行）。它们不出现在界面上，但决定了这个工具能不能被真实团队用起来。
+</p>
+<p>
+  过程中被数据推翻的判断至少有三次：以为 pro 更准（实测同一任务 flash 抽得更多）、
+  以为引用校验用相似度就够（实测全判弱）、以为 critic 越严格越好（实测把待办全判掉了）。
+  每次修正都写进了代码注释——这也是我们坚持"保留完整 Git 历史"的原因：判断是有代价的，应该留下痕迹。
+</p>
+<p>
+  下一步的三件事：把长会议做成层次摘要（map-reduce），把语音转写接进来自建闭环，
+  把知识库从"问答"扩展到"主动提醒"（例如发现新决议与旧文档冲突时提示）。
+  再往后，我们希望它变成团队的"记忆层"——不是替人做决定，而是让每个决定都留得下证据。
+</p>
+
+<h2 class="pagebreak">附录 A　接口清单（节选）</h2>
+<table>
+  <tr><th style="width:52mm">接口</th><th style="width:14mm">方法</th><th>说明</th></tr>
+  <tr><td>/api/auth/login</td><td>POST</td><td>邮箱 + 密码，返回 Bearer token（HMAC，7 天）</td></tr>
+  <tr><td>/api/meetings</td><td>GET/POST</td><td>列表（含决议/待办/段落计数）、新建</td></tr>
+  <tr><td>/api/meetings/{id}/segments</td><td>POST</td><td>写入转写片段，必须带 idx</td></tr>
+  <tr><td>/api/meetings/{id}/analyze</td><td>POST</td><td>触发六 Agent 流水线，默认后台任务，<span class="mono">?sync=1</span> 同步</td></tr>
+  <tr><td>/api/meetings/{id}/export</td><td>GET</td><td><span class="mono">fmt=md|docx</span></td></tr>
+  <tr><td>/api/docs/{id}/write</td><td>POST</td><td>补丁式改写，返回 blocks / patches / notes / risks</td></tr>
+  <tr><td>/api/docs/{id}/apply</td><td>POST</td><td>按勾选的块序号重建全文，版本 +1</td></tr>
+  <tr><td>/api/kb/upload</td><td>POST</td><td>PDF/Word/MD/TXT/HTML，切片入库</td></tr>
+  <tr><td>/api/kb/ask</td><td>POST</td><td>SSE：retrieval → token… → done（含引用校验）</td></tr>
+  <tr><td>/api/tasks?view=board</td><td>GET</td><td>四列看板 + 负责人列表</td></tr>
+  <tr><td>/api/tasks/weekly</td><td>GET</td><td><span class="mono">generate=0</span> 只取面板，<span class="mono">generate=1</span> 生成正文</td></tr>
+  <tr><td>/api/insights/overview</td><td>GET</td><td>KPI、14 天趋势、Agent 聚合、缓存统计</td></tr>
+  <tr><td>/api/runs/{id}</td><td>GET</td><td>运行详情与逐步 Trace</td></tr>
+  <tr><td>/api/settings/runtime</td><td>GET/PUT</td><td>档位、脱敏开关、语义缓存开关、思维链开关</td></tr>
+</table>
+
+<h2>附录 B　目录结构</h2>
+<pre>agentdesk/
+├─ apps/
+│  ├─ api/
+│  │  ├─ app/
+│  │  │  ├─ main.py                 应用入口、静态托管、健康检查
+│  │  │  ├─ config.py               配置（pydantic-settings，.env 可选）
+│  │  │  ├─ db.py  models.py        14 张表、SQLite WAL
+│  │  │  ├─ deps.py  security.py    鉴权、工作区上下文
+│  │  │  ├─ routers/                auth meetings docs kb tasks insights prefs
+│  │  │  └─ core/
+│  │  │     ├─ providers.py         模型接入（OpenAI 兼容 / Ollama / Mock）+ 降级
+│  │  │     ├─ structured.py        call_json 契约、预算自愈、记账
+│  │  │     ├─ pipeline.py          六 Agent 编排（含并行与逐步兜底）
+│  │  │     ├─ rag.py               切片、BM25、RRF、精排、引用校验、SSE
+│  │  │     ├─ writer.py            补丁应用、行级 diff、规则体检
+│  │  │     ├─ predict.py           对数正态工期 P50/P90
+│  │  │     ├─ routing.py           四档路由与思维链开关
+│  │  │     ├─ cache.py             语义缓存（JSONL 落盘）
+│  │  │     ├─ guard.py             PII 脱敏与还原
+│  │  │     ├─ trace.py             Run / RunStep 记账
+│  │  │     └─ prompts.py           十个 Agent 的提示词
+│  │  ├─ seed/demo.py               演示数据（3 会 16 任务 3 资料 14 天历史）
+│  │  └─ tests/test_core.py         20 条单元测试
+│  └─ web/
+│     └─ src/
+│        ├─ pages/                  12 个页面
+│        ├─ components/             AppShell、ui、charts
+│        └─ lib/                    api、format、hooks、transcript
+├─ scripts/                         bench_pipeline / eval_quality / bench_reasoning / smoke / diag_writer
+├─ deploy/                          Dockerfile、docker-compose、Caddyfile、README
+└─ docs/                            技术文档、演讲稿、任务清单</pre>
+
+<footer>智协台 AgentDesk · 技术文档 v1.0 · 孟嘉祺　杜春晓</footer>
+</body>
+</html>
