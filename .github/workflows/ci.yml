@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: 后端 · lint + 单测
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api/requirements.txt
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements.txt
+          pip install ruff pytest
+      - name: 代码规范
+        run: ruff check apps/api/app apps/api/seed
+      - name: 单元测试
+        env:
+          LLM_PROVIDER: mock
+          DATABASE_URL: sqlite:///./data/ci.db
+        run: pytest -q apps/api/tests
+
+  frontend:
+    name: 前端 · 类型检查 + 构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile=false
+        working-directory: apps/web
+      - name: 类型检查
+        run: pnpm typecheck
+        working-directory: apps/web
+      - name: 构建
+        run: pnpm build
+        working-directory: apps/web
+
+  smoke:
+    name: 接口冒烟（Mock 模型）
+    runs-on: ubuntu-latest
+    needs: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements.txt
+      - name: 初始化演示数据
+        env:
+          LLM_PROVIDER: mock
+          DATABASE_URL: sqlite:///./data/smoke.db
+          PYTHONPATH: apps/api
+        run: python apps/api/seed/demo.py
+      - name: 启动服务并探活
+        env:
+          LLM_PROVIDER: mock
+          DATABASE_URL: sqlite:///./data/smoke.db
+          PYTHONPATH: apps/api
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --app-dir apps/api &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/api/health > /dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8000/api/health
