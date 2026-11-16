@@ -16,7 +16,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.core.cache import cache  # noqa: E402
 from app.core.embedding import embed  # noqa: E402
 from app.core import rag  # noqa: E402
 from app.db import SessionLocal, init_db  # noqa: E402
