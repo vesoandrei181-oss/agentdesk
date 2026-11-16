@@ -37,8 +37,12 @@ export function LoginPage() {
             智协台 AgentDesk
           </div>
           <div>
-            <h1 className="max-w-md text-3xl font-semibold leading-snug">
-              让会议记录、文档撰写与任务跟进<br />在一条链路上自动流转
+            <h1 className="max-w-[21rem] text-[26px] font-semibold leading-snug">
+              让会议记录、文档撰写
+              <br />
+              与任务跟进
+              <br />
+              在同一条链路上自动流转
             </h1>
             <p className="mt-4 max-w-md text-sm leading-6 text-white/70">
               六个专职 Agent 协同完成会议理解与文档生产，每一条结论都能回指原始语句，
