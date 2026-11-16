@@ -12,6 +12,10 @@ data/*.sqlite3
 data/uploads/
 data/cache/
 data/video/
+data/runtime.json
+apps/api/data/
+docs/video/
+*.tsbuildinfo
 .env
 .env.local
 .DS_Store
