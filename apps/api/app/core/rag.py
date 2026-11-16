@@ -253,7 +253,17 @@ def answer_stream(db, workspace_id: int, question: str, kb_ids: list[int] | None
     recorder.add("retriever", input_summary=question[:120],
                  output_summary=f"召回 {len(chunks)} 个片段：" + "、".join(f"p{c['page']}" for c in chunks),
                  payload={"rrf": [c["rrf"] for c in chunks]}, evidence_count=len(chunks))
-    yield {"type": "retrieval", "chunks": chunks}
+    # chunks 只给数量，正文片段走 sources：早先前端把整段对象数组当数字拼进文案，
+    # 屏幕上直接出现「召回 [object Object]」——契约里数字就只放数字。
+    yield {
+        "type": "retrieval",
+        "count": len(chunks),
+        "chunks": len(chunks),
+        "sources": [
+            {"doc": c["doc_title"], "page": c["page"], "section": c["section"]}
+            for c in chunks[:6]
+        ],
+    }
 
     if not chunks:
         msg = "资料库里没有检索到相关内容。可以换个说法，或先上传对应文档。"

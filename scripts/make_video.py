@@ -113,7 +113,7 @@ SCENES = [
           "这个设计是被一次事故逼出来的，最初同步生成，用户打开页面要等三十到六十秒，看起来就是白屏。",
           "weekly"),
     Scene("s10_insights",
-          "运行观测和设置。累计三十三次运行、十一万 token、七分六美分，缓存命中二十六次。"
+          "运行观测和设置。累计三十一次运行、十万出头的 token、不到八美分，缓存命中二十六次。"
           "设置里可以切四档模型路由。默认这档全部走快模型并关闭思维链，这是实测出来的结论："
           "同一个抽取任务，快模型抽得比大模型更多、快十倍；大模型开着思维链，四千 token 预算内一条都产不出来，"
           "因为预算全花在思考上。这个项目真正花时间的不是页面，是这些看不见的东西："
@@ -144,15 +144,19 @@ def glide(page: Page, x: float, y: float, steps: int = 22) -> None:
 
 
 def click_text(page: Page, text: str, exact: bool = False) -> bool:
+    """按可见文字点击。只在可交互元素里找，并优先选文字最短的那个——
+    否则容易点到包住整页的 div，看起来"点了"，其实什么都没发生。"""
     box = page.evaluate(
         """([text, exact]) => {
-            const els = [...document.querySelectorAll('button, a, [role=tab], div, span')];
-            const hit = els.find(e => {
-                const t = (e.textContent || '').trim();
-                return exact ? t === text : t.includes(text);
-            });
-            if (!hit) return null;
-            const r = hit.getBoundingClientRect();
+            const sel = 'button, a, [role=tab], [role=button], input[type=submit]';
+            const hits = [...document.querySelectorAll(sel)]
+              .map(e => ({e, t: (e.textContent || '').trim()}))
+              .filter(x => x.t && (exact ? x.t === text : x.t.includes(text)))
+              .sort((a, b) => a.t.length - b.t.length);
+            if (!hits.length) return null;
+            const e = hits[0].e;
+            e.scrollIntoView({block: 'center'});
+            const r = e.getBoundingClientRect();
             if (!r.width || !r.height) return null;
             return {x: r.x + r.width / 2, y: r.y + r.height / 2};
         }""",
@@ -163,6 +167,20 @@ def click_text(page: Page, text: str, exact: bool = False) -> bool:
     glide(page, box["x"], box["y"])
     page.mouse.click(box["x"], box["y"])
     return True
+
+
+def ensure_login(page: Page) -> None:
+    """登录并确认真的进了工作区；没进去就直接抛错，别录一整段登录页。"""
+    page.goto(f"{BASE}/login", wait_until="networkidle")
+    page.wait_for_timeout(600)
+    if "/login" not in page.url:
+        return
+    page.fill("form input:not([type=password])", "demo@agentdesk.dev")
+    page.fill("form input[type=password]", "Demo@2026")
+    page.wait_for_timeout(200)
+    page.click("form button.btn-primary")
+    page.wait_for_url("**/dashboard", timeout=15000)
+    page.wait_for_timeout(1200)
 
 
 def slow_scroll(page: Page, total: int, ms: int = 1200, steps: int = 12) -> None:
@@ -189,8 +207,7 @@ def act(page: Page, key: str, seconds: float) -> None:
             page.goto(f"{BASE}/login", wait_until="networkidle")
             page.wait_for_timeout(800)
             fill_until(page, seconds - (time.time() - t0))
-            click_text(page, "进入工作区")
-            page.wait_for_timeout(2500)
+            ensure_login(page)
             fill_until(page, seconds - (time.time() - t0))
         elif key == "dashboard":
             page.goto(f"{BASE}/dashboard", wait_until="networkidle")
@@ -230,10 +247,10 @@ def act(page: Page, key: str, seconds: float) -> None:
         elif key == "kb":
             page.goto(f"{BASE}/kb", wait_until="networkidle")
             page.wait_for_timeout(1200)
-            page.fill("textarea, input[type=text]", "引用校验阈值是多少")
+            page.fill('input[placeholder*="提问"]', "引用校验阈值是多少")
             page.wait_for_timeout(400)
-            page.keyboard.press("Enter")
-            page.wait_for_timeout(9000)
+            page.click("form button.btn-primary")
+            page.wait_for_timeout(11000)
             slow_scroll(page, 700, 2000)
             fill_until(page, seconds - (time.time() - t0))
         elif key == "tasks":
@@ -260,39 +277,67 @@ def act(page: Page, key: str, seconds: float) -> None:
     except Exception as exc:  # noqa: BLE001
         print(f"  [warn] {key} 动作异常：{exc}")
         page.wait_for_timeout(500)
+    finally:
+        if "/login" in page.url:
+            print(f"  [warn] {key} 结束时仍停在登录页，画面可能无效")
 
 
 # ------------------------------------------------------------------ 字幕
-def srt_time(t: float) -> str:
+def ass_time(t: float) -> str:
     h, rem = divmod(t, 3600)
     m, s = divmod(rem, 60)
-    return f"{int(h):02d}:{int(m):02d}:{s:06.3f}".replace(".", ",")
+    return f"{int(h)}:{int(m):02d}:{s:05.2f}"
+
+
+ASS_HEAD = """[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Main,Microsoft YaHei,46,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,2.4,0,2,110,110,58,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
 
 
 def build_subtitles(scenes: list[Scene]) -> Path:
+    """直接生成 ASS：PlayRes 固定 1920x1080，字号才是像素级可控的。
+
+    用 SRT + force_style 时 libass 默认按 288 行高换算，字号会被放大三四倍，
+    字幕占掉半个屏幕——踩过这个坑，所以这里自己写 ASS 头部。
+    """
     lines: list[str] = []
-    idx = 1
     clock = 0.0
     for sc in scenes:
         parts = [p for p in re.split(r"(?<=[。，；：！？])", sc.text) if p.strip()]
-        # 长句再按 18 字切开，保证每屏字幕不超过两行
+        # 长句按 22 字切开；过短的碎句并回上一句，避免屏幕上闪一个"0"这种碎片
         pieces: list[str] = []
         for p in parts:
-            while len(p) > 18:
-                pieces.append(p[:18])
-                p = p[18:]
-            if p:
+            while len(p) > 22:
+                pieces.append(p[:22])
+                p = p[22:]
+            if not p:
+                continue
+            if pieces and len(p) < 8:
+                pieces[-1] += p
+            else:
                 pieces.append(p)
         total_chars = sum(len(p) for p in pieces) or 1
         cursor = clock
         for p in pieces:
             dur = sc.duration * len(p) / total_chars
-            lines.append(f"{idx}\n{srt_time(cursor)} --> {srt_time(cursor + dur)}\n{p}\n")
-            idx += 1
+            lines.append(
+                f"Dialogue: 0,{ass_time(cursor)},{ass_time(cursor + dur)},Main,,0,0,0,,{p}"
+            )
             cursor += dur
         clock += sc.duration + GAP
-    out = WORK / "subtitles.srt"
-    out.write_text("\n".join(lines), encoding="utf-8")
+    out = WORK / "subtitles.ass"
+    out.write_text(ASS_HEAD + "\n".join(lines) + "\n", encoding="utf-8")
     return out
 
 
@@ -374,18 +419,45 @@ def main() -> None:
 
     print("4/4 转码 1080p MP4")
     out = ROOT / "docs" / "演示视频-智协台AgentDesk.mp4"
+    # 在视频工作目录里跑，字幕路径写成裸文件名：Windows 盘符里的冒号会被 ffmpeg 当成滤镜参数分隔符
     subprocess.run(
-        ["ffmpeg", "-y", "-i", str(raw), "-i", str(audio),
-         "-vf", f"scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,"
-                f"subtitles='{srt.as_posix()}':force_style='FontName=Microsoft YaHei,FontSize=20,"
-                f"PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=1,Shadow=0,MarginV=36'",
+        ["ffmpeg", "-y", "-i", "raw.webm", "-i", "narration.mp3",
+         "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,"
+                "pad=1920:1080:(ow-iw)/2:(oh-ih)/2,"
+                "subtitles=subtitles.ass",
          "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
          "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart",
          str(out)],
         check=True,
+        cwd=str(WORK),
+    )
+    print(f"完成：{out}（{out.stat().st_size / 1024 / 1024:.1f} MB）")
+
+
+def mux_only() -> None:
+    """已有 raw.webm 与 narration.mp3 时，只重做声音拼接、字幕与转码。"""
+    for sc in SCENES:
+        sc.audio = TTS_DIR / f"{sc.key}.mp3"
+        sc.duration = ffprobe_duration(sc.audio)
+    print("重做字幕与合成（不重新录制）")
+    build_audio(SCENES)
+    build_subtitles(SCENES)
+    out = ROOT / "docs" / "演示视频-智协台AgentDesk.mp4"
+    subprocess.run(
+        ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+         "-i", "raw.webm", "-i", "narration.mp3",
+         "-vf", "subtitles=subtitles.ass",
+         "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+         "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart",
+         str(out)],
+        check=True,
+        cwd=str(WORK),
     )
     print(f"完成：{out}（{out.stat().st_size / 1024 / 1024:.1f} MB）")
 
 
 if __name__ == "__main__":
-    main()
+    if "--mux-only" in sys.argv:
+        mux_only()
+    else:
+        main()

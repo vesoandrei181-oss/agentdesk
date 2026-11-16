@@ -177,7 +177,20 @@ $env:PYTHONPATH="apps/api"; python scripts/eval_quality.py
 2. **Cloudflare 隧道**（最快出公网地址，无需公网 IP）：`cloudflared tunnel --url http://127.0.0.1:8000`；
 3. **单机 systemd / Nginx**：后端托管静态产物，Nginx 反代即可。
 
-## 10. 团队
+## 10. 交付材料
+
+| 材料 | 位置 | 说明 |
+|---|---|---|
+| 技术文档（PDF，21 页） | [docs/技术文档-智协台AgentDesk.pdf](docs/技术文档-智协台AgentDesk.pdf) | 项目概述、需求分析、系统架构、AI 技术方案（选型/集成/优化）、核心功能实现、测试与部署、创新点、附录接口清单 |
+| 技术文档（可编辑源） | [docs/technical-report.html](docs/technical-report.html) | 由 `scripts/make_pdf.py` 两遍渲染成 PDF 并回填目录页码 |
+| 演示视频（5 分 20 秒 / 1080p） | `docs/演示视频-智协台AgentDesk.mp4` | 旁白 + 中文字幕，由 `scripts/make_video.py` 自动录制合成 |
+| 演讲稿 | [docs/演讲逐字稿.md](docs/演讲逐字稿.md) | 按时间点分段，可直接当视频旁白或现场讲解 |
+| 评分自评 | [docs/评分自评.md](docs/评分自评.md) | 六维逐项列证据，并标注自己认为还不够的地方 |
+| 交付清单 | [docs/交付清单.md](docs/交付清单.md) | 五项参赛材料对照 + 可复现数字 + 评委 3 分钟动线 |
+
+复现数字：端到端 31.5s（原 410.3s，快 13 倍）、检索 hit@6 100%、引用支撑 72.2%、写作补丁定位 23/23、单测 20 条全过、`ruff` 零告警。
+
+## 11. 团队
 
 | 成员 | 分工 |
 |---|---|
@@ -186,6 +199,6 @@ $env:PYTHONPATH="apps/api"; python scripts/eval_quality.py
 
 哈尔滨信息工程学院
 
-## 11. License
+## 12. License
 
 MIT

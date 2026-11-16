@@ -137,7 +137,12 @@ export const api = {
 export async function askStream(
   question: string,
   handlers: {
-    onRetrieval?: (payload: { question: string; chunks: number }) => void;
+    onRetrieval?: (payload: {
+      question: string;
+      count: number;
+      chunks: number;
+      sources?: { doc: string; page: number; section: string }[];
+    }) => void;
     onToken?: (text: string) => void;
     onDone?: (payload: { answer: string; citations: Citation[] }) => void;
     onError?: (msg: string) => void;

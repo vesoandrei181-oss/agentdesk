@@ -43,7 +43,12 @@ export function KbPage() {
     setStreaming(true);
 
     await askStream(q, {
-      onRetrieval: (p) => setStage(`召回 ${p.chunks} 个片段，正在精排…`),
+      onRetrieval: (p) => {
+        const names = (p.sources || []).slice(0, 3).map((s) => `${s.doc} 第${s.page}页`);
+        setStage(
+          `召回 ${p.count ?? p.chunks} 段${names.length ? '：' + names.join('、') + (p.count > 3 ? ' 等' : '') : ''}，正在精排…`,
+        );
+      },
       onToken: (t) => {
         setStage('');
         setTurns((prev) => {

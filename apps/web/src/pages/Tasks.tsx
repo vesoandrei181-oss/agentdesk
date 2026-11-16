@@ -104,8 +104,8 @@ export function TasksPage() {
                             style={{ width: `${Math.min(100, (t.p50_days / Math.max(t.p90_days, 0.1)) * 100)}%` }}
                           />
                         </div>
-                        <span className="text-[9.5px] text-ink-400">
-                          {t.p50_days}/{t.p90_days}天
+                        <span className="text-[9.5px] text-ink-400" title="P50 常见工期 / P90 保守工期">
+                          P50 {t.p50_days} / P90 {t.p90_days} 天
                         </span>
                       </div>
                     )}
