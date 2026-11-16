@@ -8,6 +8,8 @@ __pycache__/
 venv/
 *.egg-info/
 data/*.db
+data/*.db-shm
+data/*.db-wal
 data/*.sqlite3
 data/uploads/
 data/cache/
