@@ -8,6 +8,8 @@
 **在线演示**：https://carbon-newspapers-receives-garbage.trycloudflare.com
 （评审账号 `demo@agentdesk.dev` / `Demo@2026`，已预置 3 场会议、16 条任务、3 份知识资料与 14 天运行记录）
 
+**代码仓库**：https://github.com/vesoandrei181-oss/agentdesk
+
 ![工作台](docs/screenshots/01-dashboard.png)
 
 ---

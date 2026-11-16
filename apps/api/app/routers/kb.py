@@ -103,6 +103,14 @@ def history(ws: Workspace = Depends(current_workspace), db: Session = Depends(ge
                        "created_at": m.created_at.isoformat()} for m in reversed(rows)]}
 
 
+@router.delete("/chat/history")
+def clear_history(ws: Workspace = Depends(current_workspace), db: Session = Depends(get_db)):
+    """清空当前工作区的问答历史（前端「清空对话」按钮；录制演示前也用它回到干净状态）。"""
+    n = db.query(ChatMessage).filter(ChatMessage.workspace_id == ws.id).delete()
+    db.commit()
+    return {"ok": True, "cleared": n}
+
+
 @router.post("/ask")
 def ask(body: AskIn, ws: Workspace = Depends(current_workspace)):
     """SSE：retrieval → token 流 → done(citations)。前端用 fetch + ReadableStream 解析。"""

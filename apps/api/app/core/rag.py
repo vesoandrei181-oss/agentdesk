@@ -231,10 +231,14 @@ def verify_citations(answer: str, chunks: list[dict]) -> list[dict]:
                 {
                     "n": n,
                     "status": "strong" if strong else "weak",
+                    "support": "strong" if strong else "weak",  # 前端用的字段名，跟 status 同义
                     "score": round(cover, 3),
                     "contrast": round(contrast, 3),
                     "doc_title": chunks[n - 1]["doc_title"],
+                    "doc": chunks[n - 1]["doc_title"],
                     "page": chunks[n - 1]["page"],
+                    "section": chunks[n - 1].get("section", ""),
+                    "text": text[:120],
                     "chunk_id": chunks[n - 1]["chunk_id"],
                 }
             )

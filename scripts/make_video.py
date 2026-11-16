@@ -246,6 +246,14 @@ def act(page: Page, key: str, seconds: float) -> None:
             fill_until(page, seconds - (time.time() - t0))
         elif key == "kb":
             page.goto(f"{BASE}/kb", wait_until="networkidle")
+            # 上一轮录制的问答会留在历史里，先清空，画面才是「一次干净的提问」
+            page.evaluate(
+                """async () => {
+                    const t = localStorage.getItem('agentdesk.token');
+                    await fetch('/api/kb/chat/history', {method: 'DELETE', headers: {Authorization: 'Bearer ' + t}});
+                }"""
+            )
+            page.reload(wait_until="networkidle")
             page.wait_for_timeout(1200)
             page.fill('input[placeholder*="提问"]', "引用校验阈值是多少")
             page.wait_for_timeout(400)

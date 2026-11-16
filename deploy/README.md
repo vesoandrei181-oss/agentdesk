@@ -5,6 +5,8 @@
 **当前在线演示**：https://carbon-newspapers-receives-garbage.trycloudflare.com
 （快速隧道，进程常驻期间有效；评审账号 `demo@agentdesk.dev` / `Demo@2026`）
 
+**代码仓库**：https://github.com/vesoandrei181-oss/agentdesk
+
 ## 一、快速公网演示（Cloudflare 快速隧道，无需账号）
 
 ```powershell
