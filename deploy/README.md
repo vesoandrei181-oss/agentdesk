@@ -2,7 +2,7 @@
 
 三条路径，按「演示优先级」排列。第一条 5 分钟能拿到公网地址，第二三条适合长期挂着。
 
-**当前在线演示**：https://carbon-newspapers-receives-garbage.trycloudflare.com
+**当前在线演示**：https://applying-left-rehabilitation-poems.trycloudflare.com
 （快速隧道，进程常驻期间有效；评审账号 `demo@agentdesk.dev` / `Demo@2026`）
 
 **代码仓库**：https://github.com/vesoandrei181-oss/agentdesk
