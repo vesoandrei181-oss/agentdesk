@@ -5,7 +5,7 @@
 
 **技术栈**：React 18 + TypeScript + Vite + Tailwind ｜ FastAPI + SQLAlchemy ｜ SQLite（本地/WAL） ｜ DeepSeek（OpenAI 兼容端点，可换 Ollama）
 
-**在线演示**：https://applying-left-rehabilitation-poems.trycloudflare.com
+**在线演示**：https://agentdesk.2007116.xyz
 （评审账号 `demo@agentdesk.dev` / `Demo@2026`，已预置 3 场会议、16 条任务、3 份知识资料与 14 天运行记录）
 
 **代码仓库**：https://github.com/vesoandrei181-oss/agentdesk

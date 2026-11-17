@@ -2,8 +2,8 @@
 
 三条路径，按「演示优先级」排列。第一条 5 分钟能拿到公网地址，第二三条适合长期挂着。
 
-**当前在线演示**：https://applying-left-rehabilitation-poems.trycloudflare.com
-（快速隧道，进程常驻期间有效；评审账号 `demo@agentdesk.dev` / `Demo@2026`）
+**当前在线演示**：https://agentdesk.2007116.xyz
+（跑在自有服务器上，Cloudflare 隧道常驻 + systemd 自启，与任何个人电脑无关；评审账号 `demo@agentdesk.dev` / `Demo@2026`）
 
 **代码仓库**：https://github.com/vesoandrei181-oss/agentdesk
 
@@ -32,7 +32,7 @@ $env:PYTHONPATH="$PWD"
 一条命令的版本（Ubuntu/Debian，root 或 sudo）：
 
 ```bash
-LLM_API_KEY=sk-你的key SITE_ADDRESS=durkmo.eu.cc bash deploy/deploy.sh
+LLM_API_KEY=sk-你的key SITE_ADDRESS=agentdesk.2007116.xyz bash deploy/deploy.sh
 ```
 
 脚本做的事：装 Docker → 拉代码到 `/opt/agentdesk` → 生成 `deploy/.env`（密钥随机）→ 构建镜像（前端在镜像里构建）→ 灌演示数据 → 起 Caddy 自动签 HTTPS 证书。
