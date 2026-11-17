@@ -1,3 +1,16 @@
+# ---------- 阶段一：构建前端 ----------
+# 服务器上没有 node 也没关系，镜像里构建；npm 慢就换镜像源：
+#   docker compose build --build-arg NPM_REGISTRY=https://registry.npmmirror.com
+FROM node:22-slim AS web
+WORKDIR /web
+ARG NPM_REGISTRY=https://registry.npmjs.org
+COPY apps/web/package.json apps/web/pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@10.32.1 --activate \
+    && pnpm install --registry=$NPM_REGISTRY
+COPY apps/web ./
+RUN pnpm build
+
+# ---------- 阶段二：运行时 ----------
 FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
@@ -14,7 +27,7 @@ COPY apps/api/requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
 COPY apps/api ./apps/api
-COPY apps/web/dist ./apps/web/dist
+COPY --from=web /web/dist ./apps/web/dist
 
 ENV PYTHONPATH=/app/apps/api
 

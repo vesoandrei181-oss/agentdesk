@@ -25,16 +25,17 @@ $env:PYTHONPATH="$PWD"
 注意：快速隧道的域名是随机的，进程一停就失效。评审期间请让它常驻
 （用 `scripts\run_demo.ps1`，或把命令注册成计划任务）。
 
-## 二、自有服务器（推荐长期方案）
+## 二、自有服务器（推荐长期方案，绑定自己的域名）
 
-准备：一台 2 核 4G 以上的 Linux、一个已解析到该服务器的域名。
+**完整步骤见 [SERVER.md](SERVER.md)**（含 DNS 解析、一键脚本、裸机 systemd、常见故障）。
+
+一条命令的版本（Ubuntu/Debian，root 或 sudo）：
 
 ```bash
-git clone <仓库地址> agentdesk && cd agentdesk
-cp .env.example .env && vim .env          # 填 LLM_API_KEY、SECRET_KEY
-docker compose -f deploy/docker-compose.yml up -d --build
-docker compose -f deploy/docker-compose.yml exec api python seed/demo.py
+LLM_API_KEY=sk-你的key SITE_ADDRESS=durkmo.eu.cc bash deploy/deploy.sh
 ```
+
+脚本做的事：装 Docker → 拉代码到 `/opt/agentdesk` → 生成 `deploy/.env`（密钥随机）→ 构建镜像（前端在镜像里构建）→ 灌演示数据 → 起 Caddy 自动签 HTTPS 证书。
 
 `deploy/docker-compose.yml` 里已经包含：
 
