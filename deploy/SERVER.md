@@ -1,96 +1,83 @@
-# 部署到自己的服务器（域名 durkmo.eu.cc）
+﻿# 閮ㄧ讲鍒版湇鍔″櫒锛堝煙鍚?agentdesk.2007116.xyz锛?
+> 鐩爣锛氳瘎瀹℃湡闂寸數鑴戝叧鏈恒€佹柇缃戯紝`https://agentdesk.2007116.xyz` 渚濈劧鑳芥墦寮€銆?> 鍚庣鏄崟杩涚▼ FastAPI + SQLite锛? 鏍?1G / 20G 鐩樺鐢ㄣ€?
+## 鍏堝垽鏂湇鍔″櫒鏄笉鏄湡姝ｃ€屾湁鍏綉 IP銆?
+`172.16.29.50` 灞炰簬绉佺綉娈碉紙172.16.0.0/12锛夛紝澶栫綉鍒颁笉浜嗐€備袱绉嶆儏鍐碉細
 
-> 目标：评审期间电脑关机、断网，`https://durkmo.eu.cc` 依然能打开。
-> 服务器要求很低：1 核 1G、20G 盘、能出网即可；后端是单进程 FastAPI + SQLite。
+| 鎯呭喌 | 鍒ゆ柇鏂规硶锛堟湇鍔″櫒涓婃墽琛岋級 | 璧板摢涓柟妗?|
+|---|---|---|
+| 浜戜富鏈鸿嚜甯﹀叕缃?IP锛堥樋閲?鑵捐/鍗庝负绛夛級 | `curl -4 ifconfig.me` 杩斿洖涓€涓叕缃?IP | **鏂规 A**锛欳addy 鐩存帴绛捐瘉涔︼紝闇€瑕?80/443 鏀捐 |
+| 鍙湁鍐呯綉 IP锛屾垨浣嶄簬鍏徃/瀛︽牎 NAT 涔嬪悗 | 鍚屼笂杩斿洖鐨勪粛鏄?172./10./192.168. 娈?| **鏂规 C**锛欳loudflare Tunnel锛屼笉闇€瑕佸叕缃?IP銆佷笉鐢ㄥ紑绔彛 |
 
-## 0. 先确认一件事：域名要能改 DNS
+澧冨唴涓绘満鐨勯澶栭檺鍒讹細`.xyz` 鏈妗?+ 80/443 缁戝煙鍚嶈繘鍑哄彲鑳借鎷︺€?*鏂规 C 涓嶅彈杩欐潯褰卞搷**锛屽洜涓烘祦閲忔槸鏈嶅姟鍣ㄤ富鍔ㄥ杩?Cloudflare锛屽啀鍥炴簮鍒版湰鏈?HTTP銆?
+## 鏂规 C锛欳loudflare Tunnel锛堝唴缃戞湇鍔″櫒棣栭€夛級
 
-`eu.cc` 是免费二级域名，通常在你注册它的那个面板里管理解析（有的叫 DNS / 解析 / Nameservers）。
-进去加一条 **A 记录**：
-
-| 主机记录 | 类型 | 值 | TTL |
-|---|---|---|---|
-| `durkmo`（或 `@`，看面板要求） | A | **你的服务器公网 IP** | 600 |
-
-验证（本地电脑执行，返回的是你服务器 IP 就对了）：
-
-```powershell
-nslookup durkmo.eu.cc 8.8.8.8
-```
-
-⚠️ 两个坑先说清：
-- **服务器在境内**：`.eu.cc` 不是境内可备案的域名，80/443 绑域名访问可能被拦。要么换境外/香港机，要么先用 IP+端口给评委。
-- **服务器在境外**：直接可用，Caddy 会自动申请 Let's Encrypt 证书，前提是 80/443 端口对公网开放（云厂商安全组要放行）。
-
-## 1. 最省事的路径（你可以完全不给我权限）
-
-服务器上执行（Ubuntu/Debian，root 或 sudo）：
-
-```bash
-# 一条命令，脚本自己装 Docker、拉代码、建 .env、灌演示数据、起服务
-curl -fsSL https://raw.githubusercontent.com/vesoandrei181-oss/agentdesk/main/deploy/deploy.sh -o deploy.sh
-LLM_API_KEY=sk-你的key SITE_ADDRESS=durkmo.eu.cc bash deploy.sh
-```
-
-脚本停下来时，编辑 `/opt/agentdesk/deploy/.env` 确认三项：`LLM_API_KEY`、`SECRET_KEY`（脚本已随机生成）、`SITE_ADDRESS`，然后重跑同一条命令即可。
-
-完成后验证：
-
-```bash
-curl -fsS https://durkmo.eu.cc/api/health
-# 期望 {"ok":true,"provider":"deepseek","mock":false,...}
-```
-
-## 2. 如果要我来操作，需要给我这些
-
-| 需要的信息 | 说明 |
+闇€瑕侊細鍩熷悕 `2007116.xyz` 宸插湪 Cloudflare 璐﹀彿閲岋紙宸茬‘璁ゅ湪锛孨S 涓?`betty/evan.ns.cloudflare.com`锛夈€?
+### C-1 寤洪毀閬擄紙娴忚鍣?1 鍒嗛挓锛?
+Cloudflare 鎺у埗鍙?鈫?**Zero Trust** 鈫?**Networks 鈫?Tunnels** 鈫?**Create a tunnel** 鈫?閫?**Cloudflared** 鈫?鍚嶅瓧濉?`agentdesk` 鈫?淇濆瓨鍚庨〉闈㈢粰鍑轰竴涓?token锛坄eyJh...`锛夈€?
+鍚屼竴椤靛垏鍒?**Public Hostname** 鏍囩 鈫?**Add a public hostname**锛?
+| 瀛楁 | 鍊?|
 |---|---|
-| 服务器公网 IP | 形如 `1.2.3.4` |
-| SSH 端口 | 默认 22 |
-| 用户名 | `root` 或带 sudo 的普通用户 |
-| 认证方式 | 密码，或私钥文件（`id_rsa` 内容/路径） |
-| 系统版本 | `cat /etc/os-release` 的前两行 |
+| Subdomain | `agentdesk` |
+| Domain | `2007116.xyz` |
+| Type | `HTTP` |
+| URL | `localhost:8000` |
 
-发我之后我做的事：装 Docker → 拉代码 → 写 `deploy/.env`（密钥随机生成，模型 key 用你给的那个）→ 构建镜像 → 灌演示数据 → 起 Caddy 自动签证书 → 从公网侧验证登录和问答 → 给你改动清单。
-
-**安全建议（不是客套，是操作顺序）**：完事之后改一次 SSH 密码或删掉那把临时公钥；如果你愿意，先新建一个 `deploy` 用户给他 sudo，用完 `deluser deploy`。
-
-## 3. 手动部署（不想跑脚本、也不想给权限）
+淇濆瓨鍚?Cloudflare 鑷姩寤?CNAME锛屼笉闇€瑕佹墜鍔ㄥ姞 A 璁板綍銆?
+### C-2 鏈嶅姟鍣ㄤ笂璺戯紙涓€鏉″懡浠わ級
 
 ```bash
-# 装 Docker
-curl -fsSL https://get.docker.com | sh
+MODE=tunnel \
+SITE_ADDRESS=agentdesk.2007116.xyz \
+LLM_API_KEY=sk-浣犵殑key \
+CLOUDFLARE_TUNNEL_TOKEN=eyJh...浣犲垰澶嶅埗鐨則oken \
+NPM_REGISTRY=https://registry.npmmirror.com \
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/vesoandrei181-oss/agentdesk/main/deploy/deploy.sh)"
+```
 
-# 拉代码
+鑴氭湰浼氾細瑁?Docker 鈫?鎷変唬鐮?鈫?鍐?`deploy/.env` 鈫?鏋勫缓闀滃儚锛堝墠绔湪闀滃儚鍐呮瀯寤猴級鈫?鐏屾紨绀烘暟鎹?鈫?`docker-compose.tunnel.yml` 璧?api锛堝彧缁?`127.0.0.1:8000`锛夆啋 瑁?cloudflared 骞舵敞鍐?systemd 鏈嶅姟銆?
+### C-3 楠屾敹
+
+```bash
+curl -s http://127.0.0.1:8000/api/health      # 鏈満
+curl -s https://agentdesk.2007116.xyz/api/health   # 鍏綉
+systemctl status cloudflared --no-pager        # 闅ч亾甯搁┗
+```
+
+娴忚鍣ㄦ墦寮€ `https://agentdesk.2007116.xyz`锛宍demo@agentdesk.dev` / `Demo@2026` 鐧诲綍銆備箣鍚庢湇鍔″櫒鍏虫満/閲嶅惎閮戒細鑷姩鎭㈠锛坄restart: unless-stopped` + `systemctl enable`锛夈€?
+## 鏂规 A锛氭湇鍔″櫒鏈夊叕缃?IP锛孋addy 鐩存帴绛捐瘉涔?
+瑙佹枃鏈€屾墜鍔ㄩ儴缃层€嶏紝鎴栵細
+
+```bash
+SITE_ADDRESS=agentdesk.2007116.xyz LLM_API_KEY=sk-浣犵殑key bash deploy/deploy.sh
+```
+
+鍓嶆彁锛欴NS 閲?`agentdesk` 鐨?A 璁板綍鎸囧悜璇ュ叕缃?IP锛堢伆浜?/ DNS only锛夛紝浜戝巶鍟嗗畨鍏ㄧ粍鏀捐 80/443銆?
+## 鎵嬪姩閮ㄧ讲锛堜笉鐢ㄨ剼鏈級
+
+```bash
+curl -fsSL https://get.docker.com | sh
 git clone https://github.com/vesoandrei181-oss/agentdesk.git /opt/agentdesk
 cd /opt/agentdesk
+cp deploy/.env.example deploy/.env && nano deploy/.env   # 濉?LLM_API_KEY / SECRET_KEY / SITE_ADDRESS
 
-# 配置
-cp deploy/.env.example deploy/.env
-nano deploy/.env        # 填 LLM_API_KEY、SECRET_KEY、SITE_ADDRESS=durkmo.eu.cc
-
-# 起服务（首次会构建镜像，5-10 分钟；npm 慢就加 --build-arg NPM_REGISTRY=https://registry.npmmirror.com）
+# 鏈夊叕缃?IP
 docker compose -f deploy/docker-compose.yml up -d --build
+# 鍐呯綉 / 璧伴毀閬?docker compose -f deploy/docker-compose.tunnel.yml up -d --build
 
-# 灌演示数据
 docker compose -f deploy/docker-compose.yml run --rm --entrypoint python api apps/api/seed/demo.py --force
-
-# 看日志
-docker compose -f deploy/docker-compose.yml logs -f --tail=100
 ```
 
-## 4. 不用 Docker 的裸机方案（可选）
+## 4. 涓嶇敤 Docker 鐨勮８鏈烘柟妗堬紙鍙€夛級
 
 ```bash
 apt-get update && apt-get install -y python3.12-venv python3-pip caddy
 cd /opt/agentdesk
 python3 -m venv .venv && .venv/bin/pip install -r apps/api/requirements.txt
-mkdir -p apps/web/dist && cp -r <本地构建好的 dist>/* apps/web/dist/   # 或 scp -r 上传
+mkdir -p apps/web/dist && cp -r <鏈湴鏋勫缓濂界殑 dist>/* apps/web/dist/   # 鎴?scp -r 涓婁紶
 PYTHONPATH=apps/api .venv/bin/python apps/api/seed/demo.py --force
 ```
 
-systemd 单元 `/etc/systemd/system/agentdesk.service`：
-
+systemd 鍗曞厓 `/etc/systemd/system/agentdesk.service`锛?
 ```ini
 [Unit]
 Description=AgentDesk
@@ -99,19 +86,17 @@ After=network.target
 [Service]
 WorkingDirectory=/opt/agentdesk
 Environment=PYTHONPATH=/opt/agentdesk/apps/api
-Environment=LLM_API_KEY=sk-你的key
-Environment=SECRET_KEY=换成随机串
-ExecStart=/opt/agentdesk/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2
+Environment=LLM_API_KEY=sk-浣犵殑key
+Environment=SECRET_KEY=鎹㈡垚闅忔満涓?ExecStart=/opt/agentdesk/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-`/etc/caddy/Caddyfile`：
-
+`/etc/caddy/Caddyfile`锛?
 ```
-durkmo.eu.cc {
+agentdesk.2007116.xyz {
     encode zstd gzip
     reverse_proxy 127.0.0.1:8000
 }
@@ -121,20 +106,17 @@ durkmo.eu.cc {
 systemctl daemon-reload && systemctl enable --now agentdesk caddy
 ```
 
-## 5. 上线后要改的文件
+## 5. 涓婄嚎鍚庤鏀圭殑鏂囦欢
 
-域名生效后，把这三处 URL 从 `*.trycloudflare.com` 换成 `https://durkmo.eu.cc`，然后提交：
+鍩熷悕鐢熸晥鍚庯紝鎶婅繖涓夊 URL 浠?`*.trycloudflare.com` 鎹㈡垚 `https://agentdesk.2007116.xyz`锛岀劧鍚庢彁浜わ細
 
-- `README.md` 顶部「在线演示」
-- `deploy/README.md` 顶部「当前在线演示」
-- `docs/交付清单.md` 第 13 行
+- `README.md` 椤堕儴銆屽湪绾挎紨绀恒€?- `deploy/README.md` 椤堕儴銆屽綋鍓嶅湪绾挎紨绀恒€?- `docs/浜や粯娓呭崟.md` 绗?13 琛?
+## 6. 甯歌闂
 
-## 6. 常见问题
-
-| 现象 | 原因 | 处理 |
+| 鐜拌薄 | 鍘熷洜 | 澶勭悊 |
 |---|---|---|
-| 证书申请失败 | 80/443 没放行，或 DNS 还没生效 | 安全组放行 + `dig durkmo.eu.cc` 确认 |
-| 502 | api 容器没起来 | `docker compose logs api`，多半是 `LLM_API_KEY` 为空 |
-| 页面 404 白屏 | 构建产物路径不对 | 确认镜像里 `/app/apps/web/dist/index.html` 存在 |
-| 登录报 401 反复跳转 | `SECRET_KEY` 变了导致旧 token 失效 | 重新登录即可 |
-| 中文导出 Word 乱码 | 镜像缺字体 | Dockerfile 里已装 `fonts-noto-cjk`，裸机方案要 `apt install fonts-noto-cjk` |
+| 璇佷功鐢宠澶辫触 | 80/443 娌℃斁琛岋紝鎴?DNS 杩樻病鐢熸晥 | 瀹夊叏缁勬斁琛?+ `dig agentdesk.2007116.xyz` 纭 |
+| 502 | api 瀹瑰櫒娌¤捣鏉?| `docker compose logs api`锛屽鍗婃槸 `LLM_API_KEY` 涓虹┖ |
+| 椤甸潰 404 鐧藉睆 | 鏋勫缓浜х墿璺緞涓嶅 | 纭闀滃儚閲?`/app/apps/web/dist/index.html` 瀛樺湪 |
+| 鐧诲綍鎶?401 鍙嶅璺宠浆 | `SECRET_KEY` 鍙樹簡瀵艰嚧鏃?token 澶辨晥 | 閲嶆柊鐧诲綍鍗冲彲 |
+| 涓枃瀵煎嚭 Word 涔辩爜 | 闀滃儚缂哄瓧浣?| Dockerfile 閲屽凡瑁?`fonts-noto-cjk`锛岃８鏈烘柟妗堣 `apt install fonts-noto-cjk` |

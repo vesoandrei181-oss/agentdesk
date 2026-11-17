@@ -1,0 +1,37 @@
+# 方案 C：Cloudflare Tunnel（服务器没有公网 IP、或境内无法开放 80/443 时用这个）
+#
+# 与 docker-compose.yml 的区别：
+#   1. 只起 api，不起 caddy——证书由 Cloudflare 边缘提供，源站只跑 HTTP；
+#   2. 端口绑定到 127.0.0.1，不对公网开放，唯一入口是 cloudflared 出站隧道；
+#   3. 不需要域名 A 记录指向本机，DNS 由 cloudflared 自动建立 CNAME。
+#
+# 用法：docker compose -f deploy/docker-compose.tunnel.yml up -d --build
+
+name: agentdesk-tunnel
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
+    restart: unless-stopped
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER:-auto}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.deepseek.com}
+      LLM_API_KEY: ${LLM_API_KEY:?LLM_API_KEY 未配置，请在 deploy/.env 里填上}
+      LLM_MODEL_FAST: ${LLM_MODEL_FAST:-deepseek-flash}
+      LLM_MODEL_QUALITY: ${LLM_MODEL_QUALITY:-deepseek-v4-pro}
+      DATABASE_URL: sqlite:////app/data/agentdesk.db
+      UPLOAD_DIR: /app/data/uploads
+      PII_MASK: ${PII_MASK:-1}
+      SEMANTIC_CACHE_THRESHOLD: ${SEMANTIC_CACHE_THRESHOLD:-0.95}
+      TOKEN_BUDGET: ${TOKEN_BUDGET:-12000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://agentdesk.2007116.xyz}
+      SECRET_KEY: ${SECRET_KEY:-please-change-this-in-production}
+    volumes:
+      - ../data:/app/data
+    ports:
+      # 只绑回环：公网无法直连，走 cloudflared 隧道
+      - "127.0.0.1:8000:8000"
